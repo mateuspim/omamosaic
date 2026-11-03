@@ -4,13 +4,13 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import "Model.js" as Model
 
-// The Mosaic engine. The shell creates exactly one while the plugin is
+// The OmaMosaic engine. The shell creates exactly one while the plugin is
 // enabled and destroys it on disable and on every plugin reload; the bar
-// widget reaches it with `bar.shell.serviceFor("pym.mosaic")`. It keeps the
+// widget reaches it with `bar.shell.serviceFor("pym.omamosaic")`. It keeps the
 // v1 tile list current from Hyprland and tiles.json and the v1 web app list
 // current from the desktop entries, and it adds, replaces, focuses,
 // removes, closes, and contains tiles. It also owns the plugin's IPC target,
-// `pym.mosaic`, so `omarchy-shell pym.mosaic …` works without the widget.
+// `pym.omamosaic`, so `omarchy-shell pym.omamosaic …` works without the widget.
 Scope {
   id: root
 
@@ -73,7 +73,7 @@ Scope {
   onSwapKeyErrorChanged: {
     if (swapKeyError === "" || swapKeyError === notifiedKeyError) return
     notifiedKeyError = swapKeyError
-    Quickshell.execDetached(["notify-send", "--app-name=Mosaic", "Mosaic", swapKeyError])
+    Quickshell.execDetached(["notify-send", "--app-name=OmaMosaic", "OmaMosaic", swapKeyError])
   }
   onBoundSwapKeyChanged: if (boundSwapKey !== "") notifiedKeyError = ""
   // Fullscreen state dispatches waiting to run after tiles moved.
@@ -137,7 +137,7 @@ Scope {
     var override = Quickshell.env("MOSAIC_BRIDGE_SOCKET") || ""
     if (override !== "") return override
     var runtime = Quickshell.env("XDG_RUNTIME_DIR") || ""
-    return (runtime !== "" ? runtime : "/tmp") + "/pym-mosaic.sock"
+    return (runtime !== "" ? runtime : "/tmp") + "/pym-omamosaic.sock"
   }
   // Which tab each tile was matched to (Model.keepTabs), kept beside the
   // socket so a shell restart can tell apart tiles on one site.
@@ -228,14 +228,14 @@ Scope {
     })
     var again = Model.planRefullscreen(pending, audio, root.tileShown, now)
     again.press.forEach(function(address) {
-      console.log("Mosaic: stream fullscreen again: " + address)
+      console.log("OmaMosaic: stream fullscreen again: " + address)
       Quickshell.execDetached(["hyprctl", "eval", Model.fullscreenKeyLua(address)])
     })
     Object.keys(pending).forEach(function(address) {
-      if (!refullscreen[address]) console.log("Mosaic: stream fullscreen after the reload: " + address)
+      if (!refullscreen[address]) console.log("OmaMosaic: stream fullscreen after the reload: " + address)
       else if (!again.pending[address] && again.press.indexOf(address) === -1) {
         var stream = audio[address] ? audio[address].stream : null
-        console.log("Mosaic: stream fullscreen dropped: " + address + " (" + JSON.stringify(stream) + ", pending " + pending[address] + ", now " + now + ")")
+        console.log("OmaMosaic: stream fullscreen dropped: " + address + " (" + JSON.stringify(stream) + ", pending " + pending[address] + ", now " + now + ")")
       }
     })
     if (JSON.stringify(again.pending) !== JSON.stringify(refullscreen)) refullscreen = again.pending
@@ -246,7 +246,7 @@ Scope {
         labels[tile.address] = Model.tileLabel(audio[tile.address] ? { url: audio[tile.address].url, index: tile.index } : tile)
       })
       result.events.forEach(function(event) {
-        console.log("Mosaic: stream " + event.action + ": " + (labels[event.address] || event.address)
+        console.log("OmaMosaic: stream " + event.action + ": " + (labels[event.address] || event.address)
           + (event.reason ? " (" + event.reason + (event.detail ? ": " + event.detail : "") + ")" : ""))
       })
       recoveryLog = Model.recoveryLog(recoveryLog, result.events, now, labels)
@@ -279,7 +279,7 @@ Scope {
       pending[address] = Date.now()
       refullscreen = pending
       recoveryTimer.running = true
-      console.log("Mosaic: stream fullscreen after the reload: " + address)
+      console.log("OmaMosaic: stream fullscreen after the reload: " + address)
     }
     var next = Object.assign({}, recovery)
     delete next[address]
@@ -338,10 +338,34 @@ Scope {
   // then says what was done, like the CLI's output.
   signal actionFinished(string label, string error, string message)
 
-  readonly property string storePath: {
-    var state = Quickshell.env("XDG_STATE_HOME") || ""
-    var home = Quickshell.env("HOME") || ""
-    return (state.indexOf("/") === 0 ? state : home + "/.local/state") + "/mosaic/tiles.json"
+  readonly property var stateDirs: Model.stateDirs(Quickshell.env("XDG_STATE_HOME") || "", Quickshell.env("HOME") || "")
+  // "" until the one-time copy of Mosaic's state (ADR 18) has settled, so
+  // the state files are first read from a complete folder rather than read
+  // empty and written back over it.
+  property string stateDir: ""
+  // Whether Mosaic's pre-rename swap bind was unbound, which is tried once.
+  property bool legacyBindCleared: false
+  property string stateMigrationPhase: ""
+  property bool stateMigrationStarted: false
+  readonly property string storePath: stateDir === "" ? "" : stateDir + "/tiles.json"
+
+  function migrateState(step, exitCode) {
+    var next = Model.stateMigrationStep(stateDirs, step, exitCode)
+    if (step === "copy" && exitCode !== 0) console.warn("OmaMosaic: cannot copy " + stateDirs.legacy + " to " + stateDirs.current + ": " + stateMigrationStderr.text.trim())
+    if (step === "copy" && exitCode === 0) console.info("OmaMosaic: copied the state from " + stateDirs.legacy + " to " + stateDirs.current)
+    if (!next) return finishStateMigration()
+    stateMigrationPhase = next.step
+    stateMigrationStarted = false
+    stateMigrationProcess.command = next.command
+    stateMigrationTimeout.interval = next.step === "copy" ? 15000 : 3000
+    stateMigrationTimeout.restart()
+    stateMigrationProcess.running = true
+  }
+
+  function finishStateMigration() {
+    stateMigrationTimeout.stop()
+    stateMigrationPhase = ""
+    stateDir = stateDirs.current
   }
 
   // Asks Hyprland for fresh client data and rereads the store. Tag changes
@@ -662,7 +686,7 @@ Scope {
     loginQueue = loginQueue.slice(1)
     var error = restore(name, { browser: browser }, "Opening " + name + " at login")
     if (error) {
-      console.warn("pym.mosaic: cannot open " + name + " at login: " + error)
+      console.warn("OmaMosaic: cannot open " + name + " at login: " + error)
       Qt.callLater(restoreNextLogin)
     }
   }
@@ -1158,12 +1182,18 @@ Scope {
     runKeyStep(["hyprctl", "-j", "binds"], function(output) {
       var taken = Model.bindConflict(output, parsed)
       if (taken !== "") {
-        root.swapKeyError = parsed.spec + " is already bound to " + taken + ". Pick another swap key in the widget settings, or clear it and bind omarchy-shell pym.mosaic swap yourself."
+        root.swapKeyError = parsed.spec + " is already bound to " + taken + ". Pick another swap key in the widget settings, or clear it and bind omarchy-shell pym.omamosaic swap yourself."
         return
+      }
+      // Mosaic's bind from before the rename (ADR 18) is unbound once, then
+      // the key is bound again as OmaMosaic's.
+      if (!root.legacyBindCleared && Model.bindOnKey(output, parsed, Model.LEGACY_SWAP_BIND_DESCRIPTIONS)) {
+        root.legacyBindCleared = true
+        return root.runKeyStep(["hyprctl", "eval", Model.unbindLua(parsed.spec)], function() { root.syncSwapKey() })
       }
       // A bind this service left behind, say before a shell restart, is
       // reused instead of doubled.
-      if (root.ownBindOn(output, parsed)) {
+      if (Model.bindOnKey(output, parsed, [Model.SWAP_BIND_DESCRIPTION])) {
         root.boundSwapKey = parsed.spec
         return
       }
@@ -1172,20 +1202,6 @@ Scope {
         else root.swapKeyError = "Cannot bind " + parsed.spec + ": " + reply.trim().replace(/^error:\s*/, "")
       })
     })
-  }
-
-  // Whether `hyprctl -j binds` output already has the service's bind on the
-  // parsed key.
-  function ownBindOn(bindsText, parsed) {
-    try {
-      var binds = JSON.parse(bindsText)
-      return binds.some(function(bind) {
-        return bind.description === Model.SWAP_BIND_DESCRIPTION && bind.submap === "" && bind.modmask === parsed.modmask
-          && String(bind.key).toLowerCase() === parsed.key.toLowerCase()
-      })
-    } catch (error) {
-      return false
-    }
   }
 
   function runKeyStep(command, then) {
@@ -1214,6 +1230,7 @@ Scope {
   }
 
   Component.onCompleted: {
+    migrateState("", 0)
     var focused = focusedTile()
     if (focused) audioFocus = focused.address
     refresh()
@@ -1394,7 +1411,7 @@ Scope {
     return sendBridge(entry.bridge, sent) ? "" : "The browser extension is not connected"
   }
 
-  // Opens the browser's extensions page, where Mosaic's Reload button
+  // Opens the browser's extensions page, where OmaMosaic's Reload button
   // loads a changed extension without restarting the browser (its
   // worker connects again on its own). Asks the first extension that can;
   // an older one can't, so the address is copied to paste instead.
@@ -1490,7 +1507,7 @@ Scope {
     layoutSync.restart()
   }
 
-  // The extension's state for scripts: `omarchy-shell pym.mosaic extension`.
+  // The extension's state for scripts: `omarchy-shell pym.omamosaic extension`.
   function extensionStatus() {
     return JSON.stringify({
       state: extensionState,
@@ -1512,12 +1529,12 @@ Scope {
     return error ? "error: " + error : "started " + job
   }
 
-  // `omarchy-shell pym.mosaic <function> [args]`, and the `bin/mosaic`
+  // `omarchy-shell pym.omamosaic <function> [args]`, and the `bin/mosaic`
   // wrapper, which mirrors the CLI on top of it. Every argument must be
   // passed; "" means not given. Lists of targets are one per line. Actions
   // run in the background, since IPC calls must answer at once.
   IpcHandler {
-    target: "pym.mosaic"
+    target: "pym.omamosaic"
 
     // `mosaic list --json`, version 1.
     function list(): string { return JSON.stringify(root.list) }
@@ -1529,7 +1546,7 @@ Scope {
     function webappsText(): string { return Model.webappsText(root.webapps) }
     // `mosaic monitors`.
     function monitors(): string { return Model.monitorsText(root.monitors) }
-    // `mosaic --version`.
+    // `omamosaic --version`.
     function version(): string { return root.versionText }
 
     // `mosaic add [--session S] [--monitor M] [--browser B] TARGET...`.
@@ -1673,6 +1690,29 @@ Scope {
       parser: SplitParser {
         onRead: function(line) { root.bridgeRead(bridgeSocket, line) }
       }
+    }
+  }
+
+  Process {
+    id: stateMigrationProcess
+    running: false
+    stderr: StdioCollector { id: stateMigrationStderr; waitForEnd: true }
+    onStarted: root.stateMigrationStarted = true
+    // Quickshell never emits `exited` for a command that cannot start;
+    // without test or cp, start from the new folder as it is.
+    onRunningChanged: if (!running && !root.stateMigrationStarted && root.stateMigrationPhase !== "") root.finishStateMigration()
+    onExited: function(exitCode) { if (root.stateMigrationPhase !== "") root.migrateState(root.stateMigrationPhase, exitCode) }
+  }
+
+  // Never block on the migration (ADR 5): past this, use the new folder.
+  Timer {
+    id: stateMigrationTimeout
+    interval: 3000
+    onTriggered: {
+      console.warn("OmaMosaic: the state migration step " + root.stateMigrationPhase + " did not finish in time")
+      root.stateMigrationPhase = ""
+      stateMigrationProcess.running = false
+      root.finishStateMigration()
     }
   }
 
@@ -1949,10 +1989,10 @@ Scope {
     }
   }
 
-  // "mosaic 0.1.0", from the manifest.
+  // "omamosaic 0.1.0", from the manifest.
   readonly property string versionText: {
     var manifest = Model.parseManifest(manifestFile.text())
-    return manifest ? "mosaic " + manifest.version : "mosaic"
+    return manifest ? "omamosaic " + manifest.version : "omamosaic"
   }
 
   FileView {

@@ -114,7 +114,7 @@ Scope {
     implicitWidth: root.rect ? root.rect.width : 1
     implicitHeight: root.rect ? root.rect.height : 1
     color: "transparent"
-    WlrLayershell.namespace: "pym-mosaic-veil"
+    WlrLayershell.namespace: "pym-omamosaic-veil"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore

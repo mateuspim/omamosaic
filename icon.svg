@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Mosaic icon: four tiles in a rounded frame">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="OmaMosaic icon: four tiles in a rounded frame">
   <rect x="11" y="11" width="234" height="234" rx="42" fill="#101a20" stroke="#9dbbc5" stroke-width="20" stroke-linejoin="round"/>
   <path d="M128 11V245M11 128H245" stroke="#9dbbc5" stroke-width="20"/>
   <rect x="31" y="31" width="77" height="77" rx="16" fill="#a8c5ce"/>

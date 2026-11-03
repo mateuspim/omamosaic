@@ -1,6 +1,6 @@
 # Widget settings and manifest
 
-`manifest.json` declares one plugin, `pym.mosaic`, of two kinds: a
+`manifest.json` declares one plugin, `pym.omamosaic`, of two kinds: a
 `service` (`MosaicService.qml`, the engine) and a `bar-widget`
 (`Panel.qml`, the panel), category Windows, one instance, default section
 right. `omarchy plugin validate .` checks it.

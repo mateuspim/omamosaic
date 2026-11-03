@@ -16,7 +16,7 @@ give the page no sign of a hand pause, so a tile paused that way is
 reloaded after 20 seconds, at most three times.
 
 A tile that was fullscreen goes fullscreen again once the stream plays:
-Mosaic presses its f (the fullscreen key on Twitch, YouTube, and Kick),
+OmaMosaic presses its f (the fullscreen key on Twitch, YouTube, and Kick),
 which briefly focuses the tile, so it waits until the tile's workspace
 is on screen, then hands focus and the cursor back.
 
@@ -28,7 +28,7 @@ tile's row says **stream stalled**; P reloads it by hand. A tile's row
 also says when a stream was recovered. It only acts on the sites in the
 widget's **Stream recovery sites** setting, `twitch.tv, kick.com` by
 default (YouTube doesn't need it); a tile on another site shows no
-stream warning on its row. `mosaic streams` shows each tile's
+stream warning on its row. `omamosaic streams` shows each tile's
 stream and the recent recoveries with the reason, such as
 `MEDIA_ERR_DECODE`; they are logged to the shell's journal too.
 

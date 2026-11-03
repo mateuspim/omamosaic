@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Render the Mosaic panel offscreen with sample tiles, one PNG per scene.
+# Render the OmaMosaic panel offscreen with sample tiles, one PNG per scene.
 # Usage: MOSAIC_PREVIEW_DIR=<absolute dir> bash tests/preview.sh
 # MOSAIC_PREVIEW_COLORS=<colors.toml> renders under another theme (default:
 # tests/offscreen/colors.toml, the README captures' slate-teal sample).
@@ -44,7 +44,7 @@ env -u DISPLAY -u WAYLAND_DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE \
   HOME="$work_dir/home" XDG_CONFIG_HOME="$work_dir/home/.config" \
   XDG_RUNTIME_DIR="$work_dir/runtime" XDG_CACHE_HOME="$work_dir/cache" \
   XDG_STATE_HOME="$work_dir/state" XDG_DATA_HOME="$work_dir/home/.local/share" \
-  MOSAIC_BRIDGE_SOCKET="$work_dir/runtime/pym-mosaic.sock" \
+  MOSAIC_BRIDGE_SOCKET="$work_dir/runtime/pym-omamosaic.sock" \
   MOSAIC_PREVIEW_DIR="$out_dir" QT_QPA_PLATFORM=offscreen \
   QT_SCALE_FACTOR="${QT_SCALE_FACTOR:-2}" QT_STYLE_OVERRIDE=Fusion QT_QPA_PLATFORMTHEME=xdgdesktopportal \
   timeout 40s quickshell -p "$work_dir/shell.qml" --no-color >"$work_dir/output" 2>&1 || status=$?

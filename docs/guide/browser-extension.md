@@ -25,9 +25,9 @@ that before removing the plugin, so the browser isn't left loading a folder
 that's gone. When the plugin brings a newer extension, or the browser is
 still running an old copy of it, the Extension tab says so. Load the
 current one without closing your tiles: **Open the extensions page** (O)
-and press Reload on Omarchy Mosaic (turn on Developer mode if there's no
+and press Reload on OmaMosaic (turn on Developer mode if there's no
 Reload button). An extension older than 0.5.2 can't open the page, so the
 button copies `chrome://extensions/` for the address bar instead. Or
-restart the browser (the tab's Restart button, B), which also loads it. The same steps are in the IPC: `omarchy-shell pym.mosaic
+restart the browser (the tab's Restart button, B), which also loads it. The same steps are in the IPC: `omarchy-shell pym.omamosaic
 extension` (status as JSON), `extensionEnable`, `extensionVerify`, and
 `extensionDisable`.

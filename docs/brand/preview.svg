@@ -51,7 +51,7 @@
 
 <!-- Left column: mark, wordmark, tagline, subline, feature chips, install box. -->
 <use href="#mark" x="198" y="398" width="232" height="232"/>
-<text x="490" y="600" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="250" font-weight="700" letter-spacing="-6" fill="#9cbec9">Mosaic</text>
+<text x="490" y="600" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="196" font-weight="700" letter-spacing="-5" fill="#9cbec9"><tspan fill="#eff4f7">Oma</tspan>Mosaic</text>
 <text x="208" y="816" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="88" font-weight="700" fill="#e9f0f5">Every stream in its place.</text>
 <g font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="48" fill="#9ca9b4">
   <text x="208" y="932">Tile Twitch, Kick, YouTube or any web app across</text>
@@ -84,7 +84,7 @@
 </g>
 <rect x="208" y="1440" width="1640" height="140" fill="#0b1218" stroke="#3c505c" stroke-width="3"/>
 <text x="258" y="1525" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="44" fill="#9cbec9">$</text>
-<text x="316" y="1525" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="44" fill="#e8eff4">omarchy plugin add github.com/mateuspim/omarchy-mosaic</text>
+<text x="316" y="1525" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="44" fill="#e8eff4">omarchy plugin add github.com/mateuspim/omamosaic</text>
 <path d="M209 1712H1395" stroke="url(#line)" stroke-width="5"/>
 <text x="208" y="1795" font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="36" letter-spacing="3" fill="#71838f">OMARCHY  /  HYPRLAND  /  QUICKSHELL</text>
 
@@ -94,7 +94,7 @@
   <rect x="30" y="44" width="1560" height="910" rx="34" fill="#000" opacity=".55" filter="url(#shadow)"/>
   <rect width="1560" height="900" rx="30" fill="#141c22" stroke="#3a4c56" stroke-width="4"/>
   <rect x="22" y="22" width="1516" height="856" rx="12" fill="url(#screen)"/>
-  <!-- The Omarchy bar, with workspace 8 active and the Mosaic widget. -->
+  <!-- The Omarchy bar, with workspace 8 active and the OmaMosaic widget. -->
   <rect x="22" y="22" width="1516" height="46" rx="12" fill="#0b1115"/>
   <g font-family="JetBrainsMono Nerd Font,JetBrains Mono,monospace" font-size="22" fill="#6f7f89">
     <text x="48" y="53">1  2  3  4  5  6  7  <tspan fill="#9cbec9" font-weight="700">8</tspan>  9</text>

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "pym.mosaic",
-  "name": "Mosaic",
-  "version": "1.7.1",
+  "id": "pym.omamosaic",
+  "name": "OmaMosaic",
+  "version": "2.0.0",
   "author": "Mateus Pim",
   "license": "MIT",
   "description": "Tile web apps such as Twitch, Kick, and YouTube as a mosaic on Hyprland, with video fullscreen kept inside each tile.",
@@ -12,7 +12,7 @@
     "barWidget": "Panel.qml"
   },
   "barWidget": {
-    "displayName": "Mosaic",
+    "displayName": "OmaMosaic",
     "description": "Manage mosaic sessions: add a URL as a tile, focus or remove tiles, and close sessions.",
     "category": "Windows",
     "allowMultiple": false,
@@ -39,7 +39,7 @@
         "type": "string",
         "label": "Swap key",
         "defaultValue": "SUPER + SHIFT + S",
-        "description": "Key that opens a swap card over the focused tile, to pick another web app or edit its address, written like SUPER + SHIFT + S. Leave empty to bind none and use your own Hyprland bind to omarchy-shell pym.mosaic swap instead. A key another binding already uses is refused, with a notification."
+        "description": "Key that opens a swap card over the focused tile, to pick another web app or edit its address, written like SUPER + SHIFT + S. Leave empty to bind none and use your own Hyprland bind to omarchy-shell pym.omamosaic swap instead. A key another binding already uses is refused, with a notification."
       },
       {
         "key": "hiddenWebapps",

@@ -6,31 +6,31 @@ Three pieces carry messages between the browser and the shell
 ```
 extension/ (worker)  ⇄  bin/mosaic-native-host  ⇄  MosaicService.qml
  connectNative          length-prefixed stdio        one JSON object per line
- "pym.mosaic"           ↔ Unix socket                on $XDG_RUNTIME_DIR/pym-mosaic.sock
+ "pym.omamosaic"           ↔ Unix socket                on $XDG_RUNTIME_DIR/pym-omamosaic.sock
 ```
 
 ## The extension
 
-Manifest V3, name "Omarchy Mosaic", with a fixed `key`, so its ID is always
+Manifest V3, name "OmaMosaic", with a fixed `key`, so its ID is always
 `ibcnbknhphdnlpfglnhelicnpnnmepbo`. Permissions: `nativeMessaging`, `tabs`,
 `alarms`, `scripting`, `storage`, and host permission `<all_urls>`. The
 worker script's file name changes with every extension change
 ([ADR 10](../adr/0010-rename-the-extension-worker-on-every-change.md)); today
-it is `background-10.js`, version 0.5.5.
+it is `background-11.js`, version 0.6.0.
 
-It connects with `chrome.runtime.connectNative("pym.mosaic")`, retries with
+It connects with `chrome.runtime.connectNative("pym.omamosaic")`, retries with
 backoff from 1 s to 60 s, and a one-minute alarm wakes the worker if the
 browser stopped it.
 
 ## The host manifest
 
 `mosaic-native-host setup DIR` writes this to
-`~/.config/<profile folder>/NativeMessagingHosts/pym.mosaic.json` in every
+`~/.config/<profile folder>/NativeMessagingHosts/pym.omamosaic.json` in every
 known Chromium-family profile folder that exists:
 
 ```json
-{ "name": "pym.mosaic",
-  "description": "Omarchy Mosaic bridge to the Omarchy shell",
+{ "name": "pym.omamosaic",
+  "description": "OmaMosaic bridge to the Omarchy shell",
   "path": "<absolute path of bin/mosaic-native-host>",
   "type": "stdio",
   "allowed_origins": ["chrome-extension://ibcnbknhphdnlpfglnhelicnpnnmepbo/"] }
@@ -38,8 +38,17 @@ known Chromium-family profile folder that exists:
 
 It also adds `DIR` to the last `--load-extension=` line of each known
 `~/.config/*-flags.conf` that exists (or appends that line), dropping older
-Mosaic entries. `remove DIR` takes Mosaic's entries off the flags files and
-deletes a host manifest only if it still equals Mosaic's. `status [DIR]`
+OmaMosaic entries. `remove DIR` takes OmaMosaic's entries off the flags files and
+deletes a host manifest only if it still equals OmaMosaic's.
+
+Before 2.0.0 the extension was "Omarchy Mosaic", the host `pym.mosaic` and
+the plugin folder `pym.mosaic`
+([ADR 18](../adr/0018-rename-to-omamosaic-with-a-new-id.md)). Setup and
+remove treat a flags entry with either extension name, or a missing
+`pym.mosaic/extension` folder, as an older OmaMosaic entry, and delete
+`NativeMessagingHosts/pym.mosaic.json` when it is provably the old host's:
+type `stdio`, this extension as its only origin, and a path ending in
+`mosaic-native-host`. `status [DIR]`
 prints, and `setup` and `remove` also print afterwards:
 
 ```json

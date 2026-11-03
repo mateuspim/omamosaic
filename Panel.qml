@@ -10,19 +10,19 @@ import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
-// Bar widget for omarchy-mosaic. The tile list and the web apps come from
+// Bar widget for OmaMosaic. The tile list and the web apps come from
 // the plugin's service (MosaicService.qml), which also does every action, so
 // this widget holds no session state of its own.
 Panel {
   id: root
-  moduleName: "pym.mosaic"
+  moduleName: "pym.omamosaic"
   manageIpc: false
 
   // The plugin's MosaicService. The shell rebuilds it on every plugin
   // reload, and this typed property resets to null when it is destroyed.
   property QtObject service: null
   readonly property var listing: service ? Model.shapeList(service.list)
-    : { sessions: [], tiles: [], error: "The Mosaic service is not running. Reload the shell's plugins or restart the shell." }
+    : { sessions: [], tiles: [], error: "The OmaMosaic service is not running. Reload the shell's plugins or restart the shell." }
   readonly property var sessions: listing.sessions
   readonly property var tiles: listing.tiles
   readonly property string listError: listing.error
@@ -127,7 +127,7 @@ Panel {
   readonly property string activity: service && service.busy ? service.busyLabel : ""
   property int cursor: 0
   property bool cursorActive: false
-  // "Mosaic 0.1.0", from the manifest.
+  // "OmaMosaic 0.1.0", from the manifest.
   readonly property string versionText: {
     var manifest = Model.parseManifest(manifestFile.text())
     return manifest ? manifest.name + " " + manifest.version : ""
@@ -416,9 +416,9 @@ Panel {
   function openExtensionsPage() {
     if (!service) return
     var error = service.openExtensionsPage()
-    if (error === "copied") showStatus("Copied chrome://extensions/: paste it into the browser's address bar, then press Reload on Omarchy Mosaic", false)
+    if (error === "copied") showStatus("Copied chrome://extensions/: paste it into the browser's address bar, then press Reload on OmaMosaic", false)
     else if (error) showStatus(error, true)
-    else showStatus("Opened the extensions page: press Reload on Omarchy Mosaic", false)
+    else showStatus("Opened the extensions page: press Reload on OmaMosaic", false)
   }
 
   function copyExtensionPath() {
@@ -890,9 +890,9 @@ Panel {
     bar: root.bar
     text: "󰕰"
     dimmed: root.tiles.length === 0
-    tooltipText: root.listError !== "" ? "Mosaic · " + root.listError : "Mosaic · " + Model.summary(root.sessions, root.tiles)
+    tooltipText: root.listError !== "" ? "OmaMosaic · " + root.listError : "OmaMosaic · " + Model.summary(root.sessions, root.tiles)
     Accessible.role: Accessible.Button
-    Accessible.name: "Mosaic tiles"
+    Accessible.name: "OmaMosaic tiles"
     onPressed: function(mouseButton) {
       if (mouseButton === Qt.MiddleButton) root.refresh()
       else root.toggle()
@@ -1029,7 +1029,7 @@ Panel {
 
           PanelHero {
             width: parent.width
-            title: "Mosaic"
+            title: "OmaMosaic"
             meta: root.listError !== "" ? "Unavailable" : Model.summary(root.sessions, root.tiles)
             detail: root.activity !== "" ? root.activity + "…" : ""
             foreground: root.foreground
@@ -1087,8 +1087,8 @@ Panel {
             Notice {
               visible: root.extensionMissing && root.swapTile === null
               text: root.extensionState === "restart"
-                ? "Restart the browser to load the Mosaic extension; the Extension tab does it."
-                : "Audio control is off: the Mosaic browser extension is not set up. Click here or open the Extension tab."
+                ? "Restart the browser to load the OmaMosaic extension; the Extension tab does it."
+                : "Audio control is off: the OmaMosaic browser extension is not set up. Click here or open the Extension tab."
               clickable: true
               onClicked: root.setView("extension")
             }
@@ -1573,7 +1573,7 @@ Panel {
 
             Notice {
               visible: root.service !== null && root.service.extensionOutdated
-              text: root.service ? "The browser is running an older copy of the Mosaic extension. Reload it on the extensions page (O), or restart the browser, to load the current one (" + root.service.extensionVersion + ")." : ""
+              text: root.service ? "The browser is running an older copy of the OmaMosaic extension. Reload it on the extensions page (O), or restart the browser, to load the current one (" + root.service.extensionVersion + ")." : ""
             }
 
             // Button labels don't wrap or elide, so the warning goes here.
@@ -2229,7 +2229,7 @@ Panel {
     }
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "pym-mosaic-layout-editor"
+    WlrLayershell.namespace: "pym-omamosaic-layout-editor"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore

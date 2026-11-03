@@ -11,8 +11,8 @@ The plugin is a service (`MosaicService.qml`) plus a bar widget
 (`Panel.qml`), with pure logic in `Model.js`. The service builds the tile list
 from Hyprland and `tiles.json` and the web app list from `DesktopEntries`,
 and it adds, replaces, focuses, removes, closes, and contains tiles through `hyprctl`,
-without the Rust `mosaic` CLI. The IPC target `pym.mosaic` and the
-`bin/mosaic` wrapper cover every CLI command, so the plugin has parity with
+without the Rust `mosaic` CLI. The IPC target `pym.omamosaic` and the
+`bin/omamosaic` wrapper cover every CLI command, so the plugin has parity with
 the CLI.
 
 ## Target shape
@@ -20,7 +20,7 @@ the CLI.
 - **One plugin, two kinds.** `manifest.json` declares `kinds: ["service",
   "bar-widget"]`. The service (`MosaicService.qml`) is the engine: the tile
   model, the store, the launch-and-tile sequence, and an `IpcHandler` with
-  target `pym.mosaic`. It runs whether or not the widget is on the bar.
+  target `pym.omamosaic`. It runs whether or not the widget is on the bar.
   `Panel.qml` is UI only. There must never be two engines, two IPC handlers,
   or two launch sequences at once, including across plugin hot reloads.
 - **Pure logic in `Model.js`**, tested with `node tests/model.test.js`:
@@ -31,7 +31,7 @@ the CLI.
   to refresh its model, and, with the panel's "Keep fullscreen in tiles"
   setting on, to contain tiles again (see "Keeping fullscreen in tiles").
 - **How the widget reaches the service.** Through the host's own-service
-  facade: `bar.shell.serviceFor("pym.mosaic")`, held in a typed `QtObject`
+  facade: `bar.shell.serviceFor("pym.omamosaic")`, held in a typed `QtObject`
   property that resets to null when the service is destroyed, and looked up
   again on a timer while it is missing. Not a `qmldir` singleton: a singleton
   lives outside the host's lifecycle, so it survives plugin reloads and
@@ -42,8 +42,8 @@ the CLI.
   (debounced) on window events and on `tiles.json` changes, and rebuilds the
   list when any toplevel's `lastIpcObject` changes. Anything that tags a
   window must call `refresh()` afterwards.
-- **Command line.** `omarchy-shell pym.mosaic <command> …` reaches the
-  `IpcHandler`. A small `bin/mosaic` wrapper keeps the `mosaic` command name.
+- **Command line.** `omarchy-shell pym.omamosaic <command> …` reaches the
+  `IpcHandler`. A small `bin/omamosaic` wrapper keeps the `mosaic` command name.
 
 | The CLI did | The plugin uses |
 | --- | --- |
@@ -67,9 +67,9 @@ logins and memory; the user chose an extension instead.
 - **Pieces.** `extension/` (Manifest V3, with a fixed `key`, so its ID is
   always `ibcnbknhphdnlpfglnhelicnpnnmepbo`), the native messaging host
   `bin/mosaic-native-host` (Python 3, standard library only), and a
-  Quickshell `SocketServer` in the service at `$XDG_RUNTIME_DIR/pym-mosaic.sock`
+  Quickshell `SocketServer` in the service at `$XDG_RUNTIME_DIR/pym-omamosaic.sock`
   (`MOSAIC_BRIDGE_SOCKET` overrides it for both sides, for test shells).
-- **Flow.** The extension calls `connectNative("pym.mosaic")`; the browser
+- **Flow.** The extension calls `connectNative("pym.omamosaic")`; the browser
   starts the host, which connects to the socket (again every 2 s while the
   shell is down) and relays: length-prefixed JSON on stdio for the
   browser, one JSON object per line for the shell. The host sends `host`
@@ -83,7 +83,7 @@ logins and memory; the user chose an extension instead.
   in `~/.config/<browser>-flags.conf`, which Arch's launchers read, so
   `mosaic-native-host setup DIR` adds DIR there (only to flags files that
   exist; symlinks followed, mode kept) and writes
-  `NativeMessagingHosts/pym.mosaic.json` into each browser profile folder
+  `NativeMessagingHosts/pym.omamosaic.json` into each browser profile folder
   that exists. `remove` undoes both; `status` reports them as JSON. The
   panel's Extension tab runs these, and Google Chrome, which ignores
   `--load-extension` since 137, needs Load unpacked.
@@ -138,20 +138,20 @@ logins and memory; the user chose an extension instead.
   extension may. Reload there reloads the unpacked folder, so the new
   worker runs without a browser restart; its `onInstalled` connects it
   again. With an older extension the panel copies the address instead.
-- **Swap in place.** `replace` (the panel's S, the swap card, `mosaic
-  replace`) sends `navigate { url }` when the extension has found the tile
+- **Swap in place.** `replace` (the panel's S, the swap card, IPC
+  `replace`) sends `navigate { url }` when the extension has found the tile
   and can navigate, then rewrites only the tile's store record's URL. The
   window, its slot, containment, mute, and volume stay, and no window
   opens, so no cursor warp or screen jump. Without the extension, or for
   a tile it hasn't found, a new window still opens in the old one's slot.
   While the page loads, `SwapVeil.qml` covers the tile with a click-through
-  overlay layer (`pym-mosaic-veil`, no keyboard): the Omarchy wordmark
+  overlay layer (`pym-omamosaic-veil`, no keyboard): the Omarchy wordmark
   (`$OMARCHY_PATH/logo.svg`, tinted to the theme) over a bar like the boot
   screen's, lifted once the extension reports the tab on the new site with a
   title of its own (`Model.navigationSettled`), after 0.9 s at least and 6 s
   at most.
   The window keeps the Hyprland class from its first URL (Chromium names
-  app windows after it), and nothing in Mosaic reads that class.
+  app windows after it), and nothing in OmaMosaic reads that class.
 - **Finding tiles.** A tile keeps the tab it was matched to while that
   tab exists (a swap in place can leave two tiles on one site with one
   title); else it is the extension window whose one tab has the tile's
@@ -161,7 +161,7 @@ logins and memory; the user chose an extension instead.
   it before is matched afresh. Without this, a stale pairing to a plain
   app window on the same site stuck, and a swap in place navigated that
   window instead of the tile (seen 2026-10-11).
-  Pairings are saved beside the socket (`pym-mosaic-tabs.json` in
+  Pairings are saved beside the socket (`pym-omamosaic-tabs.json` in
   `$XDG_RUNTIME_DIR`), since tab ids outlive a shell restart. Tiles alike
   in title and site, never paired before, are told apart by focus: when one
   is focused, the service asks for a fresh report (`ping`) and pairs it
@@ -177,7 +177,7 @@ logins and memory; the user chose an extension instead.
 
 Twitch streams sometimes drop for good, most likely when video decoding
 fails, and only a page reload brings them back (the user's report,
-2026-10-07). Mosaic notices and reloads the tile.
+2026-10-07). OmaMosaic notices and reloads the tile.
 
 - **Detection is in the page (extension 0.5.5, `background-10.js`, feature
   `stream`).** The worker injects `pageStream` into each tile's main frame
@@ -203,7 +203,7 @@ fails, and only a page reload brings them back (the user's report,
   while another video on the page plays (an ad). An error counts after
   4 s, `frozen` and `gone` after 12 s, and `stopped` and `stuck` after
   20 s, so a normal rebuffer doesn't. An `idle` report carries why
-  (`paused`, `not started`, `no video`, `other`) for `mosaic streams`. A video counts
+  (`paused`, `not started`, `no video`, `other`) for `omamosaic streams`. A video counts
   only on the path where it played: Twitch changes pages without loading
   one, so leaving a channel for its directory once read as "gone" and
   reloaded the directory (seen live 2026-10-08; fixed in 0.5.1). The page
@@ -217,7 +217,7 @@ fails, and only a page reload brings them back (the user's report,
   setting (`twitch.tv, kick.com`; subdomains count) with the existing
   `reload` command: at once, then after 30 s and 2 min, at most three
   tries in ten minutes. After that the tile is `stalled` until its
-  stream plays again or the user reloads it by hand (P, `mosaic reload`,
+  stream plays again or the user reloads it by hand (P, `omamosaic reload`,
   `reloadTile`), which also gives its tries back. A tile whose stream
   plays again after a reload counts as recovered. A reload whose page is
   still idle 45 s later, on the same address and not paused by hand,
@@ -226,8 +226,8 @@ fails, and only a page reload brings them back (the user's report,
   reports as a quiet `idle (no video)` (seen 2026-10-26). The service runs the
   plan on every report and every 5 s while a reload waits its turn or
   for its page to play, logs
-  each event to the journal ("Mosaic: stream reloaded: …"), and keeps the
-  last 50 for `mosaic streams` (IPC `streams`). The panel's switch is the
+  each event to the journal ("OmaMosaic: stream reloaded: …"), and keeps the
+  last 50 for `omamosaic streams` (IPC `streams`). The panel's switch is the
   widget setting `recoverStreams` (on by default).
 - **What a reload keeps.** The window, its slot, containment, the tab's
   mute, and its volume (set again when the page finishes loading). A
@@ -276,7 +276,7 @@ Every tile carries two static Hyprland tags: `mosaic`, and
 are interpolated into Lua strings, and window addresses must be `0x` plus
 hex for the same reason. Tags decide membership.
 
-`$XDG_STATE_HOME/mosaic/tiles.json` (default `~/.local/state`) records each
+`$XDG_STATE_HOME/omamosaic/tiles.json` (default `~/.local/state`) records each
 tile's address, session, and URL in the order the tiles were added:
 
 ```json
@@ -302,8 +302,8 @@ only on incompatible changes; adding a field doesn't bump it.
 ## Saved sessions
 
 A saved session is a live session kept under its own name, to open again
-from the panel's **Saved** tab, `mosaic restore NAME`, or at login (the
-user's choices, 2026-10-07). `$XDG_STATE_HOME/mosaic/saved.json`:
+from the panel's **Saved** tab, `omamosaic restore NAME`, or at login (the
+user's choices, 2026-10-07). `$XDG_STATE_HOME/omamosaic/saved.json`:
 
 ```json
 { "version": 1, "sessions": { "streams": { "monitor": "DP-4", "workspace": 10,
@@ -337,7 +337,7 @@ Personal URLs live only there, never in this repository.
   that mode decides mutes.
 - **At login**: sessions with `login` on open a few seconds after the
   shell starts, one after another. A marker beside the bridge socket in
-  the runtime directory (`pym-mosaic-login`) is written first, so this runs
+  the runtime directory (`pym-omamosaic-login`) is written first, so this runs
   once per login, not on every shell restart or plugin reload.
 
 ## Layouts
@@ -381,12 +381,12 @@ slots. Floating geometry stays rejected (see "Compared approaches").
 - Changing a custom layout's zones doesn't lay out a workspace that uses
   it, and neither does setting the same rule again; switching it to
   dwindle and back does, so a save does that for each workspace using it.
-- `$XDG_STATE_HOME/mosaic/layouts.json`: `{ "version": 2, "workspaces": {
+- `$XDG_STATE_HOME/omamosaic/layouts.json`: `{ "version": 2, "workspaces": {
   "8": { "layout": "grid", "before": "dwindle" }, "9": { "layout":
   "custom:three", "before": "" } }, "custom": { "three": { "name": "Three",
   "tree": { "split": "row", "sizes": [25, 50, 25], "children": [{}, {},
   {}] }, "main": 2 } } }`, where
-  `before` is the workspace's layout before Mosaic changed it, which
+  `before` is the workspace's layout before OmaMosaic changed it, which
   `default` puts back. Version 1 (unreleased, one day old) kept layouts per
   session; they move to their sessions' workspaces on the first sync.
 - Runtime rules and registrations are gone after a config reload, so the
@@ -581,7 +581,7 @@ tile, so a tile Hyprland won't contain can't loop the service.
 - While a tile floats, its video fullscreen covers the monitor. Containment
   comes back when it is tiled again.
 - Tiles share the workspace with any windows already on it, and the
-  workspace's layout (dwindle by default, or a Mosaic layout; see
+  workspace's layout (dwindle by default, or an OmaMosaic layout; see
   "Layouts") decides their sizes.
 - YouTube, Twitch, and Kick players stay in their tiles; see "Real
   players" below.
@@ -661,7 +661,7 @@ page="file://$PWD/examples/fullscreen-test.html?video=/tmp/mosaic-probe.webm"
 # open "$page" twice as tiles in a scratch session, then:
 node examples/cdp-eval.mjs fullscreen-test.html 0 \
   'video.requestFullscreen().then(() => new Promise(r => setTimeout(r, 1500))).then(() => innerWidth + "x" + innerHeight)'
-hyprctl -j clients | jq -c '.[] | select(.title | test("Mosaic fullscreen test")) | {at, size, floating, fullscreen, fullscreenClient}'
+hyprctl -j clients | jq -c '.[] | select(.title | test("OmaMosaic fullscreen test")) | {at, size, floating, fullscreen, fullscreenClient}'
 ```
 
 Containment holds when the page size equals the tile size and each window

@@ -3,9 +3,9 @@ import QtTest
 import Quickshell
 import qs.Commons
 import qs.Commons as Commons
-import "plugin" as Mosaic
+import "plugin" as OmaMosaic
 
-// Offscreen visual review: draws the Mosaic panel for each scene and saves
+// Offscreen visual review: draws the OmaMosaic panel for each scene and saves
 // one PNG per scene into MOSAIC_PREVIEW_DIR. Run through tests/preview.sh,
 // which swaps in the KeyboardPanel stand-in and hands the panel the fake
 // service (tests/offscreen/FakeService.qml) through a fake bar.
@@ -26,11 +26,11 @@ ShellRoot {
 
   TestCase { id: finder; when: false }
 
-  Mosaic.FakeService { id: fakeService }
+  OmaMosaic.FakeService { id: fakeService }
 
   QtObject {
     id: fakeShell
-    function serviceFor(id) { return id === "pym.mosaic" ? fakeService : null }
+    function serviceFor(id) { return id === "pym.omamosaic" ? fakeService : null }
     function updateEntryInline(id, settings) { console.log("preview: settings not saved") }
   }
 
@@ -53,14 +53,14 @@ ShellRoot {
     function switchPanelFrom(owner, direction) { return false }
   }
 
-  Mosaic.Panel {
+  OmaMosaic.Panel {
     id: widget
     settings: ({ swapKey: "", recoverStreams: true })
     bar: fakeBar
   }
 
   FloatingWindow {
-    title: "Mosaic · sample preview"
+    title: "OmaMosaic · sample preview"
     implicitWidth: 560
     implicitHeight: 1500
     color: Commons.Color.background

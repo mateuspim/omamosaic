@@ -5,7 +5,7 @@ import vm from "node:vm"
 const source = fs.readFileSync(new URL("../Model.js", import.meta.url), "utf8")
   .replace(/^\.pragma library\s*/m, "")
 const model = {}
-vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest });", { model })
+vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
 
 // Values built inside the VM belong to another realm, so compare copies.
 const plain = value => JSON.parse(JSON.stringify(value))
@@ -462,8 +462,18 @@ assert.equal(model.bindConflict(binds, model.parseKeySpec("SUPER + ALT + S")), "
 assert.equal(model.bindConflict(binds, model.parseKeySpec("SUPER + SHIFT + S")), "")
 assert.equal(model.bindConflict(binds, model.parseKeySpec("SUPER + M")), "")
 assert.equal(model.bindConflict("oops", model.parseKeySpec("SUPER + ALT + S")), "")
+// Mosaic's pre-rename bind (ADR 18) is no conflict, and bindOnKey tells it
+// from OmaMosaic's own.
+const renamedBinds = JSON.stringify([{ modmask: 65, key: "S", submap: "", description: "OmaMosaic: swap the focused tile's web app" }])
+assert.equal(model.bindConflict(renamedBinds, model.parseKeySpec("SUPER + SHIFT + S")), "")
+assert.equal(model.bindOnKey(binds, model.parseKeySpec("SUPER + SHIFT + S"), model.LEGACY_SWAP_BIND_DESCRIPTIONS), true)
+assert.equal(model.bindOnKey(binds, model.parseKeySpec("SUPER + SHIFT + S"), [model.SWAP_BIND_DESCRIPTION]), false)
+assert.equal(model.bindOnKey(renamedBinds, model.parseKeySpec("SUPER + SHIFT + S"), [model.SWAP_BIND_DESCRIPTION]), true)
+assert.equal(model.bindOnKey(renamedBinds, model.parseKeySpec("SUPER + S"), [model.SWAP_BIND_DESCRIPTION]), false)
+assert.equal(model.bindOnKey("oops", model.parseKeySpec("SUPER + SHIFT + S"), [model.SWAP_BIND_DESCRIPTION]), false)
+assert.equal(model.bindOnKey(renamedBinds, model.parseKeySpec(""), [model.SWAP_BIND_DESCRIPTION]), false)
 assert.equal(model.swapBindLua("SUPER + SHIFT + S"),
-  'hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("omarchy-shell pym.mosaic swap"), { description = "Mosaic: swap the focused tile\'s web app" })')
+  'hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("omarchy-shell pym.omamosaic swap"), { description = "OmaMosaic: swap the focused tile\'s web app" })')
 assert.equal(model.unbindLua("SUPER + SHIFT + S"), 'hl.unbind("SUPER + SHIFT + S")')
 
 // monitorsJson: DP-4 (id 1) at 0,0 and DP-5 (id 0) at 1920,0.
@@ -823,7 +833,7 @@ assert.equal(model.audioIcon({ audible: true, muted: false, volume: 0.3 }), "ó°–
   assert.equal(model.workspaceChoice(inUse, 10), "custom:three")
   assert.equal(model.workspaceChoice(inUse, "8"), "default")
   assert.equal(model.layoutsText(inUse), "workspace 10  Three\n\nCustom layouts:\n  Three  (3 zones  Â·  main 50%)")
-  assert.equal(model.layoutsText({ workspaces: {}, custom: {} }), "No workspace has a Mosaic layout.")
+  assert.equal(model.layoutsText({ workspaces: {}, custom: {} }), "No workspace has an OmaMosaic layout.")
 }
 
 // Volumes: a following extension's report wins unless the tile was just
@@ -1085,3 +1095,17 @@ assert.equal(model.siteRoot(null), "")
   assert.equal(model.planSaveWebapp(saveList, apps, "9", "").error, 'No mosaic tile "9"; see `mosaic list`')
 }
 console.log("model tests passed")
+
+// State moved from mosaic/ to omamosaic/ with the 2.0.0 rename (ADR 18).
+assert.deepEqual(plain(model.stateDirs("/x/state", "/h")), { current: "/x/state/omamosaic", legacy: "/x/state/mosaic" })
+assert.deepEqual(plain(model.stateDirs("", "/h")), { current: "/h/.local/state/omamosaic", legacy: "/h/.local/state/mosaic" })
+assert.deepEqual(plain(model.stateDirs("relative", "/h")), { current: "/h/.local/state/omamosaic", legacy: "/h/.local/state/mosaic" })
+const dirs = model.stateDirs("/s", "/h")
+assert.deepEqual(plain(model.stateMigrationStep(dirs, "", 0)), { step: "check-current",
+  command: ["test", "-e", "/s/omamosaic/tiles.json", "-o", "-e", "/s/omamosaic/saved.json", "-o", "-e", "/s/omamosaic/layouts.json"] })
+assert.equal(model.stateMigrationStep(dirs, "check-current", 0), null)
+assert.deepEqual(plain(model.stateMigrationStep(dirs, "check-current", 1)), { step: "check-legacy", command: ["test", "-d", "/s/mosaic"] })
+assert.equal(model.stateMigrationStep(dirs, "check-legacy", 1), null)
+assert.deepEqual(plain(model.stateMigrationStep(dirs, "check-legacy", 0).command), ["cp", "-a", "-n", "-T", "/s/mosaic", "/s/omamosaic"])
+assert.equal(model.stateMigrationStep(dirs, "copy", 0), null)
+assert.equal(model.stateMigrationStep(dirs, "copy", 1), null)

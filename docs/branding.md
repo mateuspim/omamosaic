@@ -1,6 +1,6 @@
-# Mosaic brand assets
+# OmaMosaic brand assets
 
-The mark is the picture Mosaic makes: four tiles inside one frame, split by
+The mark is the picture OmaMosaic makes: four tiles inside one frame, split by
 a cross, the way a monitor holds several web apps side by side. Each tile is
 a different shade of the same slate teal, so they read as separate windows
 that still belong together. The frame and cross are thick on purpose: at
@@ -22,11 +22,13 @@ made before this standard) and are kept as the brand colours:
 | Icon field | `#101a20` | Icon background, between the tiles |
 | Deep teal | `#4f7f8f` | Wordmark on light surfaces; the hero's bottom-left glow |
 
-The wordmark is the whole word **Mosaic**, in JetBrainsMono Nerd Font Bold,
-in slate teal on dark surfaces or deep teal on light ones. Never "Omarchy
-Mosaic" or "Mosaic for Omarchy" as a wordmark. The browser extension keeps
-the name "Omarchy Mosaic", since that is how it shows on the browser's
-extensions page and how the native host recognises older copies of it.
+The wordmark is the whole word **OmaMosaic**, in JetBrainsMono Nerd Font Bold,
+in slate teal on dark surfaces or deep teal on light ones, or split as
+"Oma" in `#eff4f7` and "Mosaic" in slate teal, as the sibling Oma plugins
+do. Never "Omarchy Mosaic" or "OmaMosaic for Omarchy" as a wordmark. The
+browser extension is named "OmaMosaic" too; before 2.0.0 it was "Omarchy
+Mosaic", which the native host still recognises in older setups
+([ADR 18](adr/0018-rename-to-omamosaic-with-a-new-id.md)).
 
 | Asset | Use |
 | --- | --- |
@@ -50,6 +52,6 @@ panel follows the user's theme. The captures show site names and made-up
 titles only: no real channels, accounts, paths or monitors beyond `DP-4` and
 `DP-5`.
 
-Keep clear space around the mark and the wordmark casing **Mosaic**. The
+Keep clear space around the mark and the wordmark casing **OmaMosaic**. The
 [development runbook](runbooks/development.md#refresh-the-preview) explains how
 to re-render the hero from offscreen captures with fake data.

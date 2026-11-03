@@ -1,6 +1,6 @@
 # `layouts.lua` and custom layouts
 
-Mosaic's layouts are Hyprland Lua tiling layouts
+OmaMosaic's layouts are Hyprland Lua tiling layouts
 ([ADR 12](../adr/0012-layouts-as-hyprland-lua-tiling-layouts.md)). How to
 use them is in the [layouts guide](../guide/layouts.md).
 
@@ -51,7 +51,7 @@ A workspace's layout is set with
 `hl.workspace_rule({ workspace = "N", layout = "lua:mosaic-grid" })`
 (`Model.layoutRuleLua`). The `lua:` prefix is required: an unknown name
 silently falls back to dwindle. `default` puts back the workspace's layout
-from before Mosaic changed it (`before` in
+from before OmaMosaic changed it (`before` in
 [`layouts.json`](files.md#layoutsjson-version-2)). A rule works before the
 workspace exists. Setting the same rule again doesn't lay the workspace out
 again; switching to dwindle and back does, which is how a saved custom
