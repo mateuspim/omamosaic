@@ -32,5 +32,5 @@ saves, Esc cancels, and D (twice) deletes one; workspaces using it get
 their own layout back.
 
 Tiles stay tiled, so Omarchy's window bindings (swapping included) keep
-working. Mosaic saves the choices in `~/.local/state/mosaic/layouts.json`
+working. OmaMosaic saves the choices in `~/.local/state/omamosaic/layouts.json`
 and applies them again after a Hyprland config reload.

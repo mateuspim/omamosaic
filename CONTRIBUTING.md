@@ -1,6 +1,6 @@
-# Contributing to Mosaic
+# Contributing to OmaMosaic
 
-Thanks for helping. Mosaic is a small project; issues and focused pull
+Thanks for helping. OmaMosaic is a small project; issues and focused pull
 requests are welcome.
 
 ## Before you start
@@ -15,10 +15,10 @@ requests are welcome.
 Clone the repository and symlink it in place of an installed copy:
 
 ```bash
-git clone https://github.com/mateuspim/omarchy-mosaic.git
-ln -s "$PWD/omarchy-mosaic" ~/.config/omarchy/plugins/pym.mosaic
-omarchy-shell shell rescanPlugins && omarchy plugin enable pym.mosaic
-omarchy-mosaic/scripts/dev-watch    # reload the widget on every save
+git clone https://github.com/mateuspim/omamosaic.git
+ln -s "$PWD/omamosaic" ~/.config/omarchy/plugins/pym.omamosaic
+omarchy-shell shell rescanPlugins && omarchy plugin enable pym.omamosaic
+omamosaic/scripts/dev-watch    # reload the widget on every save
 ```
 
 Every saved file then runs in your shell. The

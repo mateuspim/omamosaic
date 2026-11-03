@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+- **Mosaic is now OmaMosaic**, plugin `pym.omamosaic`, ahead of its
+  marketplace listing: another plugin was listed as "Mosaic"
+  ([ADR 18](docs/adr/0018-rename-to-omamosaic-with-a-new-id.md)). The IPC
+  target is `omarchy-shell pym.omamosaic`, the command `omamosaic` (`mosaic`
+  stays as an alias), and the repository `mateuspim/omamosaic`. Moving over
+  is a manual step once; see "Coming from Mosaic" in the README.
+- Open tiles carry over: the Hyprland tags and layout names keep `mosaic`.
+  On first start the state in `~/.local/state/mosaic/` is copied to
+  `~/.local/state/omamosaic/`; the old folder is left as it was.
+- Extension 0.6.0 (`background-11.js`) is named "OmaMosaic" and talks to the
+  `pym.omamosaic` native host. Press **Enable** on the Extension tab and
+  restart the browser: it replaces the old extension entry and the old
+  `pym.mosaic` host registrations, and keeps anything another program
+  wrote.
+- The swap key's old bind from Mosaic is replaced instead of being
+  refused as taken.
+
 ## 1.7.1 (2026-10-29)
 
 - **Fixed**: a tile on a site outside "Stream recovery sites", such as

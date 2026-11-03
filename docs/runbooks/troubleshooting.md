@@ -6,19 +6,19 @@ Symptom, likely cause, fix. Read the shell's log first:
 quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
 ```
 
-## The panel says "The Mosaic service is not running"
+## The panel says "The OmaMosaic service is not running"
 
 - **Cause**: the plugin's service is not loaded: the plugin is disabled, or
   its QML failed to load.
-- **Fix**: `omarchy plugin enable pym.mosaic`, then
+- **Fix**: `omarchy plugin enable pym.omamosaic`, then
   `omarchy-shell shell rescanPlugins`; if it persists, look for QML errors
   in the log and restart the shell (`omarchy-restart-shell`).
 
-## `mosaic: Cannot reach the Omarchy shell`
+## `omamosaic: Cannot reach the Omarchy shell`
 
 - **Cause**: `omarchy-shell` could not call the plugin: the shell is not
   running, or the plugin is disabled.
-- **Fix**: as above. `omarchy-shell pym.mosaic version` should answer.
+- **Fix**: as above. `omarchy-shell pym.omamosaic version` should answer.
 
 ## Tiles don't open: "The default browser (…) is not Chromium-based"
 
@@ -26,7 +26,7 @@ quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
   `--app` mode, or the browser couldn't be resolved.
 - **Fix**: set a Chromium-family default browser, or the widget's
   **Browser** setting to a command such as `chromium` or `brave`
-  ([ADR 11](../adr/0011-chromium-family-browsers-only.md)). Mosaic 1.5.2 and
+  ([ADR 11](../adr/0011-chromium-family-browsers-only.md)). OmaMosaic 1.5.2 and
   later look past Omarchy's `omarchy-browser` link wrapper.
 
 ## "No browser app window appeared for …"
@@ -39,10 +39,10 @@ quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
 
 ## A video's fullscreen covers the whole monitor
 
-- **Cause**: the tile is **uncontained** (its row says so, `mosaic list`
+- **Cause**: the tile is **uncontained** (its row says so, `omamosaic list`
   shows `(uncontained)`), for example after Omarchy's Super+Ctrl+F, or it is
   floating.
-- **Fix**: press **C** in the panel (or `mosaic contain`), or turn on
+- **Fix**: press **C** in the panel (or `omamosaic contain`), or turn on
   **Keep fullscreen in tiles** (Shift+C). Tile a floating tile again; its
   containment comes back by itself.
 
@@ -52,14 +52,14 @@ quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
   the browser runs an older copy (`extensionOutdated`). Brave has kept a
   cached worker script across restarts.
 - **Fix**: **Open the extensions page** (O) and press Reload on Omarchy
-  Mosaic (turn on Developer mode if there's no Reload button), or restart
+  OmaMosaic (turn on Developer mode if there's no Reload button), or restart
   the browser (B). See the
   [browser extension guide](../guide/browser-extension.md).
 
 ## Google Chrome never loads the extension
 
 - **Cause**: Chrome ignores `--load-extension` since version 137, and some
-  browsers have no flags file for Mosaic to edit.
+  browsers have no flags file for OmaMosaic to edit.
 - **Fix**: load it by hand: extensions page, Developer mode, Load unpacked,
   and pick the extension folder (the Extension tab copies its path).
 
@@ -71,10 +71,10 @@ quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
 
 ## The swap key does nothing, or a notification says it is taken
 
-- **Cause**: another Hyprland bind already uses the key, so Mosaic refused
+- **Cause**: another Hyprland bind already uses the key, so OmaMosaic refused
   to bind it ([ADR 14](../adr/0014-swap-key-as-a-checked-runtime-bind.md)).
 - **Fix**: pick another key in the widget's **Swap key** setting, or clear
-  it and bind `omarchy-shell pym.mosaic swap` in your own config (see the
+  it and bind `omarchy-shell pym.omamosaic swap` in your own config (see the
   [panel guide](../guide/panel.md)).
 
 ## A dropped stream isn't reloaded
@@ -82,7 +82,7 @@ quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
 - **Cause**: recovery is off, the site isn't in **Stream recovery sites**,
   the extension isn't connected, or the tile stalled after three tries in
   ten minutes.
-- **Fix**: `mosaic streams` shows each tile's stream, why an idle tile is
+- **Fix**: `omamosaic streams` shows each tile's stream, why an idle tile is
   idle, and the recent recoveries. Turn on **Recover dropped streams**
   (Shift+R), add the site, or press **P** on a stalled tile, which also gives
   its tries back.

@@ -1,16 +1,18 @@
-# IPC and the `mosaic` command
+# IPC and the `omamosaic` command
 
 The service (`MosaicService.qml`) registers one `IpcHandler` with target
-`pym.mosaic`, so it answers whether or not the widget is on the bar. Call it
-as `omarchy-shell pym.mosaic <function> [args…]`. `bin/mosaic` wraps it in
-the old CLI's command line. The user-facing walkthrough is in the
+`pym.omamosaic`, so it answers whether or not the widget is on the bar. Call it
+as `omarchy-shell pym.omamosaic <function> [args…]`. `bin/omamosaic` wraps it in
+the old CLI's command line, and `bin/mosaic` is its alias. Before 2.0.0 the
+target was `pym.mosaic`
+([ADR 18](../adr/0018-rename-to-omamosaic-with-a-new-id.md)). The user-facing walkthrough is in the
 [command-line guide](../guide/command-line.md).
 
 ## Calling conventions
 
 - Every argument must be passed; use `""` for none.
 - Lists of targets travel as one argument, one item per line (web app names
-  can contain spaces): `omarchy-shell pym.mosaic add $'twitch\nkick' streams "" ""`.
+  can contain spaces): `omarchy-shell pym.omamosaic add $'twitch\nkick' streams "" ""`.
 - `TILE` is a list number (`index` in [`list`](files.md#list-version-1)) or
   a window address (`0x…`).
 - `omarchy-shell` gives up on a call after about 2 s, so long actions are
@@ -30,11 +32,11 @@ the old CLI's command line. The user-facing walkthrough is in the
 | Function | Answer |
 | --- | --- |
 | `list` | Version 1 list JSON ([format](files.md#list-version-1)). |
-| `listText` | The list as text, like `mosaic list`. |
+| `listText` | The list as text, like `omamosaic list`. |
 | `webapps` | Version 1 web app JSON ([format](files.md#webapps-version-1)). |
 | `webappsText` | The web apps as text. |
 | `monitors` | Active monitors: logical size after scale and rotation, and work area. |
-| `version` | `mosaic` plus the plugin's version. |
+| `version` | `omamosaic` plus the plugin's version. |
 | `layouts` | Workspaces with a layout, and the custom layouts, as text. |
 | `saved` | Saved sessions as JSON ([format](files.md#savedjson-version-1)). |
 | `savedText` | Saved sessions as text. |
@@ -87,37 +89,37 @@ the old CLI's command line. The user-facing walkthrough is in the
 | `extensionDisable()` | Runs `mosaic-native-host remove`; answers `started` or an error. |
 | `extensionVerify()` | Pings every connected browser and matches tiles; answers `started`, read the outcome from `extension`. |
 
-## `bin/mosaic`
+## `bin/omamosaic`
 
 A bash wrapper that keeps the Rust CLI's arguments, messages and exit codes
 ([ADR 3](../adr/0003-plugin-replaces-the-rust-cli.md)). It validates
 arguments itself, forwards them quoted, polls `result` for jobs (every
 0.1 s, up to 150 s), prints the job's message, and exits 1 with
-`mosaic: REASON` on an error or when the shell can't be reached.
+`omamosaic: REASON` on an error or when the shell can't be reached.
 
 | Command | IPC |
 | --- | --- |
-| `mosaic [add] [--session S] [--monitor M] [--browser B] TARGET…` | `add` (1–9 targets) |
-| `mosaic list [--json]` | `listText` / `list` |
-| `mosaic remove TILE…` | `remove` |
-| `mosaic focus TILE` | `focus` |
-| `mosaic move TILE SESSION` | `move` |
-| `mosaic close [--session S]` | `close` |
-| `mosaic contain [--session S]` | `contain` |
-| `mosaic layout` | `layouts` |
-| `mosaic layout --workspace N LAYOUT` | `layout` (`N` is 1–9999) |
-| `mosaic layout [--session S] LAYOUT` | `sessionLayout` (session defaults to `default`) |
-| `mosaic save SESSION` | `save` |
-| `mosaic restore [--browser B] NAME` | `restore` |
-| `mosaic saved [--json]` | `savedText` / `saved` |
-| `mosaic forget NAME` | `forget` |
-| `mosaic login NAME on\|off` | `login` |
-| `mosaic reload TILE` | `reloadTile` |
-| `mosaic save-app TILE [NAME]` | `saveApp` |
-| `mosaic streams` | `streams` |
-| `mosaic webapps [--json]` | `webappsText` / `webapps` |
-| `mosaic monitors` | `monitors` |
-| `mosaic --version` | `version` |
+| `omamosaic [add] [--session S] [--monitor M] [--browser B] TARGET…` | `add` (1–9 targets) |
+| `omamosaic list [--json]` | `listText` / `list` |
+| `omamosaic remove TILE…` | `remove` |
+| `omamosaic focus TILE` | `focus` |
+| `omamosaic move TILE SESSION` | `move` |
+| `omamosaic close [--session S]` | `close` |
+| `omamosaic contain [--session S]` | `contain` |
+| `omamosaic layout` | `layouts` |
+| `omamosaic layout --workspace N LAYOUT` | `layout` (`N` is 1–9999) |
+| `omamosaic layout [--session S] LAYOUT` | `sessionLayout` (session defaults to `default`) |
+| `omamosaic save SESSION` | `save` |
+| `omamosaic restore [--browser B] NAME` | `restore` |
+| `omamosaic saved [--json]` | `savedText` / `saved` |
+| `omamosaic forget NAME` | `forget` |
+| `omamosaic login NAME on\|off` | `login` |
+| `omamosaic reload TILE` | `reloadTile` |
+| `omamosaic save-app TILE [NAME]` | `saveApp` |
+| `omamosaic streams` | `streams` |
+| `omamosaic webapps [--json]` | `webappsText` / `webapps` |
+| `omamosaic monitors` | `monitors` |
+| `omamosaic --version` | `version` |
 
 Session names given to the wrapper must match `^[a-z0-9_-]{1,32}$`, an
 option that doesn't apply to a command is refused, and targets can't contain

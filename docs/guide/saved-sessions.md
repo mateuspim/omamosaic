@@ -8,5 +8,5 @@ saving again updates it. The **Saved** tab lists saved sessions: **Enter**
 opens the tiles that aren't open yet, back where they were (on the
 focused monitor if that one is gone), **O** switches **Open at login** on
 or off, and **D** (twice) deletes one. Saved sessions live in
-`~/.local/state/mosaic/saved.json`. To open one with a key, bind
-`mosaic restore NAME` in your Hyprland config.
+`~/.local/state/omamosaic/saved.json`. To open one with a key, bind
+`omamosaic restore NAME` in your Hyprland config.

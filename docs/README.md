@@ -1,6 +1,6 @@
-# Mosaic documentation
+# OmaMosaic documentation
 
-## Use Mosaic
+## Use OmaMosaic
 
 - [README](../README.md): features, install and remove.
 - [The panel](guide/panel.md): every key, adding tiles, web app buttons,
@@ -15,8 +15,8 @@
   noticed and reloaded.
 - [The browser extension](guide/browser-extension.md): what it is for, and
   setting it up.
-- [Command line](guide/command-line.md): `mosaic` and
-  `omarchy-shell pym.mosaic`.
+- [Command line](guide/command-line.md): `omamosaic` and
+  `omarchy-shell pym.omamosaic`.
 - [How it works](guide/how-it-works.md): tags, `tiles.json`, fullscreen
   containment, compatibility with the old CLI.
 - [Troubleshooting](runbooks/troubleshooting.md): symptom, cause, fix.
@@ -24,14 +24,14 @@
   writes; the [2026-10-19 security review](security-review.md).
 - [Brand assets](branding.md): icon, wordmarks, colours and README hero.
 
-## Develop Mosaic
+## Develop OmaMosaic
 
 - [Project brief](project.md): the problem, goals, requirements and what is
   out of scope.
 - [Architecture](architecture.md): components, data flow, and the evidence
   behind fullscreen containment, the extension, recovery and layouts.
 - [Architecture decisions](adr/README.md): durable tradeoffs.
-- [Specs](specs/): the [IPC and `mosaic` command](specs/ipc.md),
+- [Specs](specs/): the [IPC and `omamosaic` command](specs/ipc.md),
   [files and JSON formats](specs/files.md) (`tiles.json`, `list`,
   `webapps`, `layouts.json`, `saved.json`),
   [`layouts.lua` and custom layouts](specs/layouts.md), the

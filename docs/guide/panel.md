@@ -43,10 +43,10 @@ field means "where I am" instead: a new tile joins the session already
 tiled on the focused workspace, or else `default` if it has no tiles yet,
 or else a new session named after the workspace (`ws-10`). Each session
 still stays on one workspace, so its layout, save and restore keep
-working. `mosaic add` without `--session` follows the switch too.
+working. `omamosaic add` without `--session` follows the switch too.
 
 A tile already in the wrong session doesn't need reopening: select it and
-press **T** to move it to another session (`mosaic move TILE SESSION`).
+press **T** to move it to another session (`omamosaic move TILE SESSION`).
 To send it to another display, pick that monitor's chip (such as
 `ws-3 · HDMI-A-2 · workspace 3`): the tile starts a session on the
 workspace that monitor shows, named the way **New tiles here** would.
@@ -59,11 +59,11 @@ closes it. Errors arrive as a notification.
 Change the key in the widget's **Swap key** setting (written like
 `SUPER + SHIFT + S`), or clear it to have none; a key another binding
 already uses is refused, and a notification and the panel say why. The key
-runs `omarchy-shell pym.mosaic swap`. To keep the bind in your own config
+runs `omarchy-shell pym.omamosaic swap`. To keep the bind in your own config
 instead, clear the setting and add it to `~/.config/hypr/bindings.lua`:
 
 ```lua
-hl.bind("SUPER + ALT + S", hl.dsp.exec_cmd("omarchy-shell pym.mosaic swap"), { description = "Mosaic: swap tile" })
+hl.bind("SUPER + ALT + S", hl.dsp.exec_cmd("omarchy-shell pym.omamosaic swap"), { description = "OmaMosaic: swap tile" })
 ```
 
 The panel's own swap mode (S) opens the same picker on the tile's card. With

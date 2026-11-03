@@ -9,7 +9,7 @@ tile, close a session, and turn fullscreen containment back on. The icon dims
 when no tiles are open.
 
 The service reads Hyprland's window tags and
-`~/.local/state/mosaic/tiles.json`, the same sources the older `mosaic` CLI
+`~/.local/state/omamosaic/tiles.json`, the same sources the older `mosaic` CLI
 used, so the bar, the CLI, and ordinary Hyprland bindings always agree. It
 refreshes when Hyprland opens, closes, moves, floats, fullscreens, or
 retitles a window. Tiles open in your default browser, which must be
@@ -19,7 +19,7 @@ the widget's **Browser** setting picks another Chromium-family command.
 ## Fullscreen stays in its tile
 
 Each tile is an ordinary Chromium-family `--app` window that Hyprland
-tiles. Mosaic gives it Hyprland's fullscreen state `internal = 0, client = 2`,
+tiles. OmaMosaic gives it Hyprland's fullscreen state `internal = 0, client = 2`,
 so the browser believes the window is already fullscreen while the
 compositor keeps it at its tile size: a page's video fullscreen then fills
 only the tile. The evidence, the edge cases and the containment check are in
@@ -28,7 +28,7 @@ choice is [ADR 1](../adr/0001-contain-fullscreen-with-hyprland-state.md).
 
 ## Compatibility
 
-The service builds the version 1 `mosaic list --json` and `mosaic webapps
+The service builds the version 1 `omamosaic list --json` and `omamosaic webapps
 --json` formats itself, and it adds, focuses, removes, closes, and contains
 tiles through Hyprland; it doesn't need the `mosaic` CLI. Tiles the CLI
 opened carry over, since both use the same tags and `tiles.json`.

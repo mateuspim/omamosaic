@@ -1,11 +1,18 @@
 # Files and JSON formats
 
-Mosaic's state lives in `$XDG_STATE_HOME/mosaic/` (default
-`~/.local/state/mosaic/`), its runtime files in `$XDG_RUNTIME_DIR`. Every
+OmaMosaic's state lives in `$XDG_STATE_HOME/omamosaic/` (default
+`~/.local/state/omamosaic/`), its runtime files in `$XDG_RUNTIME_DIR`. Every
 state file is JSON, written atomically by the service (`FileView.setText`),
 and read leniently: a missing or unreadable file counts as empty. Personal
 URLs live only in these files, never in the repository. Why the first two
 formats are frozen: [ADR 6](../adr/0006-keep-tiles-json-and-v1-json-compatible.md).
+
+Before 2.0.0 the folder was `$XDG_STATE_HOME/mosaic/`
+([ADR 18](../adr/0018-rename-to-omamosaic-with-a-new-id.md)). When the
+service starts and the new folder has none of `tiles.json`, `saved.json`
+and `layouts.json`, it copies the old folder's files into it (`cp -a -n`,
+never overwriting) before reading any state, and leaves the old folder as
+it was. The formats did not change.
 
 ## `tiles.json`
 
@@ -28,7 +35,7 @@ tags, which decide membership
 
 ## `list` (version 1)
 
-`mosaic list --json` and IPC `list`:
+`omamosaic list --json` and IPC `list`:
 
 ```json
 {"version":1,"sessions":[{"name":"streams","tiles":[{"index":1,"address":"0x…","url":"https://…",
@@ -37,7 +44,7 @@ tags, which decide membership
 
 - Sessions are sorted by name; tiles without a session tag are in `default`.
 - Tiles are in store order; `index` is 1-based across all sessions and is
-  what `mosaic remove 2` and other `TILE` arguments mean.
+  what `omamosaic remove 2` and other `TILE` arguments mean.
 - `url` is `null` for a tagged window with no store record.
 - `state` is `contained` (fullscreen state `0/2`), `uncontained` (`0/0`),
   `floating`, or `fullscreen` (truly fullscreen).
@@ -46,7 +53,7 @@ tags, which decide membership
 
 ## `webapps` (version 1)
 
-`mosaic webapps --json` and IPC `webapps`:
+`omamosaic webapps --json` and IPC `webapps`:
 
 ```json
 {"version":1,"webapps":[{"id":"Twitch","name":"Twitch","url":"https://twitch.tv","icon":"twitch"}]}
@@ -62,7 +69,7 @@ unset.
 
 ## `layouts.json` (version 2)
 
-The layout of each workspace Mosaic changed, and the custom layouts:
+The layout of each workspace OmaMosaic changed, and the custom layouts:
 
 ```json
 { "version": 2,
@@ -77,7 +84,7 @@ The layout of each workspace Mosaic changed, and the custom layouts:
 
 - `layout`: `grid`, `stack`, `main`, `fit`, or `custom:<slug>`. A workspace
   set back to Hyprland's own layout (`default`) is removed.
-- `before`: the workspace's layout before Mosaic changed it, which `default`
+- `before`: the workspace's layout before OmaMosaic changed it, which `default`
   puts back.
 - `custom.<slug>`: a custom layout; the format is in
   [layouts.md](layouts.md#custom-layouts).
@@ -112,14 +119,14 @@ In `$XDG_RUNTIME_DIR` (the service falls back to `/tmp` without it):
 
 | File | Written by | Holds |
 | --- | --- | --- |
-| `pym-mosaic.sock` | the service (`SocketServer`) | The bridge socket; `MOSAIC_BRIDGE_SOCKET` overrides the path for both sides. |
-| `pym-mosaic-tabs.json` | the service | Which browser tab each tile was matched to, since tab ids outlive a shell restart. |
-| `pym-mosaic-login` | the service | Marker that saved sessions were opened for this login. |
+| `pym-omamosaic.sock` | the service (`SocketServer`) | The bridge socket; `MOSAIC_BRIDGE_SOCKET` overrides the path for both sides. |
+| `pym-omamosaic-tabs.json` | the service | Which browser tab each tile was matched to, since tab ids outlive a shell restart. |
+| `pym-omamosaic-login` | the service | Marker that saved sessions were opened for this login. |
 
 ## Other files
 
 | File | Written by | Holds |
 | --- | --- | --- |
-| `$XDG_STATE_HOME/mosaic/plugin-update.log` | the optional git hooks in `.githooks/` | What the hooks ran after a commit, pull or checkout on `master`. |
-| `~/.config/<browser profile>/NativeMessagingHosts/pym.mosaic.json` | `mosaic-native-host setup` | The native-host manifest; see [native-messaging.md](native-messaging.md). |
+| `$XDG_STATE_HOME/omamosaic/plugin-update.log` | the optional git hooks in `.githooks/` | What the hooks ran after a commit, pull or checkout on `master`. |
+| `~/.config/<browser profile>/NativeMessagingHosts/pym.omamosaic.json` | `mosaic-native-host setup` | The native-host manifest; see [native-messaging.md](native-messaging.md). |
 | `~/.config/*-flags.conf` | `mosaic-native-host setup` / `remove` | The extension folder on the `--load-extension=` line, only in files that exist. |

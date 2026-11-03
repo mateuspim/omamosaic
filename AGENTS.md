@@ -1,20 +1,20 @@
-# Mosaic agent instructions
+# OmaMosaic agent instructions
 
-Mosaic tiles web apps such as Twitch, Kick and YouTube as a monitor-aware
+OmaMosaic tiles web apps such as Twitch, Kick and YouTube as a monitor-aware
 mosaic on Hyprland, where video fullscreen stays inside its tile. It is an
 Omarchy shell plugin (Quickshell/QML), a service plus a bar widget, with a
 Python native host and a browser extension for audio. Plugin id
-`pym.mosaic`; public at https://github.com/mateuspim/omarchy-mosaic. It
+`pym.omamosaic`; public at https://github.com/mateuspim/omamosaic. It
 took over the whole project from the Rust CLI, now retired as
-`omarchy-mosaic-cli`; `mosaic` on the PATH is this repository's
-`bin/mosaic` wrapper.
+`omarchy-mosaic-cli`; `omamosaic` (and its alias `mosaic`) on the PATH is
+this repository's `bin/omamosaic` wrapper.
 
 The README is the landing page; the user manual is `docs/guide/` (one page
 per feature area), so read the guide page before changing a feature. Read
 `docs/project.md`, `docs/architecture.md` and `docs/roadmap.md` before making
 architectural choices: `docs/architecture.md` says how the parts fit and
 holds the evidence, `docs/adr/` why, `docs/specs/` what the contracts are
-(IPC and `mosaic`, file formats, `layouts.lua`, native messaging,
+(IPC and `omamosaic`, file formats, `layouts.lua`, native messaging,
 settings). `docs/README.md` indexes the rest; update the spec a change
 touches.
 
@@ -22,17 +22,19 @@ If the main checkout has a local `docs/HANDOFF.md`, read it first for where
 to pick up, the hard-won facts and how to verify. It is a working note kept
 out of git (`.gitignore`): update it as work goes, but never commit it.
 
-## Decisions (settled with the owner, 2026-09-27 and 2026-10-21)
+## Decisions (settled with the owner, 2026-09-27, 2026-10-21 and 2026-11-03)
 
-- This repository is the official project, `omarchy-mosaic`. The Rust
-  repository is `omarchy-mosaic-cli`, archived now that the plugin has
-  parity (ADR 3).
-- The name is **Mosaic** (not "Omarchy Mosaic" or "Mosaic for Omarchy"),
-  the plugin id stays `pym.mosaic`, and there is no rename or migration. The
-  browser extension keeps the name "Omarchy Mosaic", which the native host
-  matches.
-- The command line is `omarchy-shell pym.mosaic …`, plus the small
-  `bin/mosaic` wrapper that keeps the `mosaic` command name.
+- This repository is the official project, `mateuspim/omamosaic` (formerly
+  `omarchy-mosaic`). The Rust repository is `omarchy-mosaic-cli`, archived
+  now that the plugin has parity (ADR 3).
+- The name is **OmaMosaic** (not "Mosaic" or "Omarchy Mosaic"), plugin id
+  `pym.omamosaic`, from 2.0.0 (ADR 18). It was Mosaic, `pym.mosaic`, until
+  another plugin was listed as "Mosaic"; that id was never listed, so no
+  listing is retired. The browser extension is "OmaMosaic" and its native
+  host `pym.omamosaic`; setup still recognises the old names to replace
+  them. Hyprland tags and layout names keep `mosaic`.
+- The command line is `omarchy-shell pym.omamosaic …`, plus the small
+  `bin/omamosaic` wrapper; `bin/mosaic` stays as its alias.
 - The bar panel replaces the planned terminal UI for good.
 - Parity with the CLI came first. Beyond it the scope is meant to grow a lot
   (`docs/roadmap.md`, "Beyond parity"); confirm priorities with the owner
@@ -44,17 +46,20 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
   `service`, the one engine and IPC handler) and `Panel.qml` (the
   `bar-widget`, UI only), with `SwapCard.qml`, `SwapVeil.qml` and
   `SwapVeilArt.qml` beside them. Pure logic in `Model.js`; Hyprland layouts
-  in `layouts.lua`; the `mosaic` wrapper and the native host in `bin/`; the
+  in `layouts.lua`; the `omamosaic` wrapper, its `mosaic` alias and the
+  native host in `bin/`; the
   browser extension in `extension/`; containment probes in `examples/`;
   tests and the offscreen harness in `tests/`; git hooks in `.githooks/`;
   brand sources in `docs/brand/`. Don't add QML subfolders, and keep new
   components inline in the file that uses them: a new sibling QML file was
   not found as a type by the panel (ADR 7).
-- Naming: plugin id and IPC target `pym.mosaic`; tags `mosaic` and
-  `mosaic-<session>`; state in `$XDG_STATE_HOME/mosaic/`; runtime files
-  `$XDG_RUNTIME_DIR/pym-mosaic*`; layer namespaces `pym-mosaic-*`; Hyprland
-  layouts `mosaic-*`; env vars `MOSAIC_*`; journal prefix `Mosaic:`.
-- The widget reaches the service through `bar.shell.serviceFor("pym.mosaic")`,
+- Naming: plugin id and IPC target `pym.omamosaic`; tags `mosaic` and
+  `mosaic-<session>`; state in `$XDG_STATE_HOME/omamosaic/`; runtime files
+  `$XDG_RUNTIME_DIR/pym-omamosaic*`; layer namespaces `pym-omamosaic-*`; Hyprland
+  layouts `mosaic-*`; env vars `MOSAIC_*`; journal prefix `OmaMosaic:`.
+  Tags, layout names and env vars kept the old name on purpose (ADR 18):
+  renaming tags would orphan open tiles.
+- The widget reaches the service through `bar.shell.serviceFor("pym.omamosaic")`,
   never a `qmldir` singleton; there must never be two engines, IPC handlers
   or launch sequences, including across plugin reloads (ADR 7).
 - The fullscreen-containment behaviour in `docs/architecture.md` is the core
@@ -63,7 +68,7 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
   tiles are launched or tiled. Floating geometry stays rejected; ask the
   owner before bringing it back.
 - Hyprland is the source of truth: tags decide membership (ADR 2). Keep
-  `~/.local/state/mosaic/tiles.json` and the v1 `list`/`webapps` JSON
+  `~/.local/state/omamosaic/tiles.json` and the v1 `list`/`webapps` JSON
   compatible (ADR 6, `docs/specs/files.md`).
 - Anything interpolated into a Hyprland Lua dispatch must be validated
   (`0x` + hex addresses, `^[a-z0-9_-]{1,32}$` session names, integer
@@ -100,7 +105,7 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
   duplication: pure logic goes in `Model.js` so Node can test it; the
   service and panel call it.
 - Error messages say what failed with the offending value, in the plain
-  sentence style the panel and `mosaic` already use.
+  sentence style the panel and `omamosaic` already use.
 
 ## Comments
 
@@ -146,7 +151,7 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
 - No `/home/...` paths, personal stream URLs, real device names, serials or
   LAN addresses in tracked files. Examples use site roots, `DP-4`/`DP-5` and
   made-up titles.
-- The privilege model lives in `SECURITY.md`; update it when Mosaic runs,
+- The privilege model lives in `SECURITY.md`; update it when OmaMosaic runs,
   reads or writes something new.
 - Never modify user config on load. The browser config changes only through
   the Extension tab's Enable and Turn off; the swap key is a runtime bind;
@@ -166,5 +171,5 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
   **Unreleased** in `CHANGELOG.md` into `## X.Y.Z (YYYY-MM-DD)`, check the
   README and guide cover the change, refresh the preview captures, run
   `npm test` and `omarchy plugin validate .`, commit `Release X.Y.Z`, and
-  add an annotated tag `vX.Y.Z` ("Mosaic X.Y.Z"). The steps are in
+  add an annotated tag `vX.Y.Z` ("OmaMosaic X.Y.Z"). The steps are in
   `docs/runbooks/development.md#release`.

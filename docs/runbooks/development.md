@@ -2,7 +2,7 @@
 
 ## Prepare a checkout
 
-Mosaic needs Omarchy with its Quickshell shell and Hyprland's Lua config,
+OmaMosaic needs Omarchy with its Quickshell shell and Hyprland's Lua config,
 a Chromium-family browser, and for the tests Node 22 or newer, `lua` (any
 of 5.1/LuaJIT, 5.4 or 5.5 passes) and Python 3. There is no build step and
 no npm dependency.
@@ -10,8 +10,8 @@ no npm dependency.
 For development, symlink the checkout instead of installing a copy:
 
 ```bash
-ln -s ~/Projects/omarchy-mosaic ~/.config/omarchy/plugins/pym.mosaic
-omarchy-shell shell rescanPlugins && omarchy plugin enable pym.mosaic
+ln -s ~/Projects/omamosaic ~/.config/omarchy/plugins/pym.omamosaic
+omarchy-shell shell rescanPlugins && omarchy plugin enable pym.omamosaic
 scripts/dev-watch      # reload the widget on every save
 ```
 
@@ -23,8 +23,8 @@ would fetch and fast-forward this repository. Pass plugin ids instead.
 `git config core.hooksPath .githooks` enables hooks that keep the installed
 widget current after commits, pulls, rebases, and checkouts on `master`. A
 symlinked install is reloaded, and a copy from `omarchy plugin add` is updated
-with `omarchy plugin update pym.mosaic --yes` (log:
-`~/.local/state/mosaic/plugin-update.log`; `MOSAIC_NO_INSTALL=1` skips it).
+with `omarchy plugin update pym.omamosaic --yes` (log:
+`~/.local/state/omamosaic/plugin-update.log`; `MOSAIC_NO_INSTALL=1` skips it).
 
 ```bash
 npm test                               # Model.js and native host tests
@@ -43,7 +43,7 @@ Read the live log without touching the shell:
 
 ```bash
 quickshell log -p /usr/share/omarchy/shell -t 200 | grep -i mosaic
-journalctl --user -b | grep -i 'Mosaic:'     # stream recovery events
+journalctl --user -b | grep -i 'OmaMosaic:'     # stream recovery events
 ```
 
 ## Run the tests
@@ -149,7 +149,7 @@ page="file://$PWD/examples/fullscreen-test.html?video=/tmp/mosaic-probe.webm"
 # open "$page" twice as tiles in a scratch session, then:
 node examples/cdp-eval.mjs fullscreen-test.html 0 \
   'video.requestFullscreen().then(() => new Promise(r => setTimeout(r, 1500))).then(() => innerWidth + "x" + innerHeight)'
-hyprctl -j clients | jq -c '.[] | select(.title | test("Mosaic fullscreen test")) | {at, size, floating, fullscreen, fullscreenClient}'
+hyprctl -j clients | jq -c '.[] | select(.title | test("OmaMosaic fullscreen test")) | {at, size, floating, fullscreen, fullscreenClient}'
 ```
 
 Containment holds when the page size equals the tile size and each window
@@ -211,6 +211,6 @@ repository.
    preview captures (they show the version).
 4. `npm test` and `omarchy plugin validate .`.
 5. Commit `Release X.Y.Z` and add an annotated tag:
-   `git tag -a vX.Y.Z -m "Mosaic X.Y.Z"`.
+   `git tag -a vX.Y.Z -m "OmaMosaic X.Y.Z"`.
 6. Ask the owner before pushing the commit and the tag, and before
    publishing a GitHub release.

@@ -9,10 +9,10 @@ only to the selected app's region.
 
 ## Goal
 
-Omarchy Mosaic launches and manages web apps, typically several Twitch, Kick,
+OmaMosaic launches and manages web apps, typically several Twitch, Kick,
 and YouTube streams, as a monitor-aware mosaic on Omarchy. Video fullscreen
 must stay bounded to the app's tile. The whole product is this Omarchy shell
-plugin (`pym.mosaic`): a service that does the work and a bar widget panel
+plugin (`pym.omamosaic`): a service that does the work and a bar widget panel
 that is its keyboard-first UI. It needs no separate binary.
 
 This repository replaces the earlier Rust CLI and its planned terminal UI
@@ -57,6 +57,6 @@ intentionally broad; see `docs/roadmap.md`.
 - A stream wall should be understandable at a glance.
 - Layouts should respond to actual monitor geometry, not assume landscape.
 - Fullscreen containment is fundamental behavior, not a cosmetic enhancement.
-- Hyprland is the source of truth. Mosaic tiles are ordinary windows, so
+- Hyprland is the source of truth. OmaMosaic tiles are ordinary windows, so
   Omarchy's own bindings keep working on them.
 - Never block or crash the user's shell.

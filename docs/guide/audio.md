@@ -11,7 +11,7 @@ change it until then.
 At the top of the Tiles tab, **Only the focused tile plays** (F) makes the
 tile you focus the only one you hear: focusing another tile unmutes it and
 mutes the rest, and focusing any other window leaves them as they are.
-Turning it off unmutes every tile. From scripts: `omarchy-shell pym.mosaic
+Turning it off unmutes every tile. From scripts: `omarchy-shell pym.omamosaic
 mute TILE on|off|toggle`, `volume TILE 40` (or `+10`, `-10`), `media TILE
 play|pause|toggle`, and `reloadTile TILE`.
 

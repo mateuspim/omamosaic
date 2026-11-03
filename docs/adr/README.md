@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Each record describes one durable decision in Mosaic's design: the context
+Each record describes one durable decision in OmaMosaic's design: the context
 that led to it, what was decided, and what follows from it. They use Michael
 Nygard's format (Context, Decision, Consequences) and are numbered in the
 order they were recorded. For how the parts fit together today, see the
@@ -11,6 +11,7 @@ commit ids are those of the commits that introduced the behaviour, taken from
 the git history; the reasoning comes from the code, the architecture notes
 and the decisions recorded with the owner at the time, not from new
 interviews. Record 17 describes work on the branch that wrote these records.
+Record 18 was written when the decision was made, on 2026-11-03.
 
 | # | Decision | Date | Status |
 | --- | --- | --- | --- |
@@ -31,11 +32,12 @@ interviews. Record 17 describes work on the branch that wrote these records.
 | [15](0015-swap-in-place-through-the-extension.md) | Swap a tile in place through the extension when it can | 2026-10-02 | Accepted |
 | [16](0016-recover-dropped-streams-with-backoff.md) | Detect dropped streams in the page and reload them with backoff | 2026-10-15 | Accepted |
 | [17](0017-offscreen-preview-harness.md) | Check the panel and render the hero offscreen with a fake service | 2026-10-21 | Accepted |
+| [18](0018-rename-to-omamosaic-with-a-new-id.md) | Rename Mosaic to OmaMosaic with a new plugin ID | 2026-11-03 | Accepted |
 
 ## Rules
 
 - Add a record for a durable choice: a backend, a boundary, a safety rule,
-  or something Mosaic deliberately refuses to do.
+  or something OmaMosaic deliberately refuses to do.
 - Never rewrite an accepted record. To change a decision, add a new record,
   set the old one's status to "Superseded by N" with a link to the new
   record, and link back from the new one.
