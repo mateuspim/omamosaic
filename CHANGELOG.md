@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0 (2026-11-03)
 
 - **Mosaic is now OmaMosaic**, plugin `pym.omamosaic`, ahead of its
   marketplace listing: another plugin was listed as "Mosaic"
