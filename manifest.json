@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "pym.omamosaic",
   "name": "OmaMosaic",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Mateus Pim",
   "license": "MIT",
   "description": "Tile web apps such as Twitch, Kick, and YouTube as a mosaic on Hyprland, with video fullscreen kept inside each tile.",
