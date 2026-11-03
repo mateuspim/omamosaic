@@ -1,11 +1,14 @@
 import assert from "node:assert/strict"
+import { spawnSync } from "node:child_process"
 import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
 import vm from "node:vm"
 
 const source = fs.readFileSync(new URL("../Model.js", import.meta.url), "utf8")
   .replace(/^\.pragma library\s*/m, "")
 const model = {}
-vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
+vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, privateStateSteps, privateFilesCommand, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
 
 // Values built inside the VM belong to another realm, so compare copies.
 const plain = value => JSON.parse(JSON.stringify(value))
@@ -1103,9 +1106,76 @@ assert.deepEqual(plain(model.stateDirs("relative", "/h")), { current: "/h/.local
 const dirs = model.stateDirs("/s", "/h")
 assert.deepEqual(plain(model.stateMigrationStep(dirs, "", 0)), { step: "check-current",
   command: ["test", "-e", "/s/omamosaic/tiles.json", "-o", "-e", "/s/omamosaic/saved.json", "-o", "-e", "/s/omamosaic/layouts.json"] })
-assert.equal(model.stateMigrationStep(dirs, "check-current", 0), null)
 assert.deepEqual(plain(model.stateMigrationStep(dirs, "check-current", 1)), { step: "check-legacy", command: ["test", "-d", "/s/mosaic"] })
-assert.equal(model.stateMigrationStep(dirs, "check-legacy", 1), null)
 assert.deepEqual(plain(model.stateMigrationStep(dirs, "check-legacy", 0).command), ["cp", "-a", "-n", "-T", "/s/mosaic", "/s/omamosaic"])
-assert.equal(model.stateMigrationStep(dirs, "copy", 0), null)
-assert.equal(model.stateMigrationStep(dirs, "copy", 1), null)
+// Every path ends by making the state private (2.0.2): the folder 0700,
+// the files 0600, the old folder too, and the runtime files.
+const runtimeFiles = ["/run/u/pym-omamosaic-tabs.json", "/run/u/pym-omamosaic-login"]
+const privateDir = { step: "private-dir", command: ["mkdir", "-p", "-m", "0700", "--", "/s/omamosaic"] }
+for (const [step, code] of [["check-current", 0], ["check-legacy", 1], ["copy", 0], ["copy", 1]])
+  assert.deepEqual(plain(model.stateMigrationStep(dirs, step, code, runtimeFiles)), privateDir, step + " " + code)
+assert.deepEqual(plain(model.stateMigrationStep(dirs, "private-dir", 0, runtimeFiles)), { step: "private",
+  command: ["find", "/s/omamosaic/", "/s/mosaic/", "/run/u/pym-omamosaic-tabs.json", "/run/u/pym-omamosaic-login",
+    "-maxdepth", "1", "(", "-type", "d", "-exec", "chmod", "0700", "{}", "+", ")", "-o",
+    "(", "-type", "f", "-exec", "chmod", "0600", "{}", "+", ")"] })
+// A failed mkdir still tightens what exists.
+assert.equal(model.stateMigrationStep(dirs, "private-dir", 1, runtimeFiles).step, "private")
+assert.equal(model.stateMigrationStep(dirs, "private", 0, runtimeFiles), null)
+assert.equal(model.stateMigrationStep(dirs, "private", 1, runtimeFiles), null)
+// Without runtime files, only the state folders.
+assert.deepEqual(plain(model.privateStateSteps(dirs, ["", "/r/x"])[1].command.slice(0, 4)), ["find", "/s/omamosaic/", "/s/mosaic/", "/r/x"])
+assert.deepEqual(plain(model.privateStateSteps(dirs)[1].command.slice(0, 4)), ["find", "/s/omamosaic/", "/s/mosaic/", "-maxdepth"])
+assert.deepEqual(plain(model.privateFilesCommand(["/s/omamosaic/saved.json", "", null])), ["chmod", "0600", "--", "/s/omamosaic/saved.json"])
+assert.equal(model.privateFilesCommand([]), null)
+assert.equal(model.privateFilesCommand(), null)
+
+// Regression (2.0.2): the steps really leave a 2.0.1 install private. Runs
+// the argv in a scratch XDG_STATE_HOME, never the user's state.
+{
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "omamosaic-modes-"))
+  try {
+    const state = path.join(scratch, "state")
+    const outside = path.join(scratch, "outside.txt")
+    const runtime = path.join(scratch, "run")
+    const mode = (file) => (fs.statSync(file).mode & 0o777).toString(8)
+    for (const dir of ["omamosaic", "mosaic"]) {
+      fs.mkdirSync(path.join(state, dir), { recursive: true, mode: 0o755 })
+      fs.chmodSync(path.join(state, dir), 0o755)
+      for (const name of ["tiles.json", "saved.json"]) {
+        fs.writeFileSync(path.join(state, dir, name), "{}")
+        fs.chmodSync(path.join(state, dir, name), 0o644)
+      }
+    }
+    fs.writeFileSync(outside, "x")
+    fs.chmodSync(outside, 0o644)
+    fs.symlinkSync(outside, path.join(state, "omamosaic", "link"))
+    fs.mkdirSync(runtime)
+    fs.writeFileSync(path.join(runtime, "tabs.json"), "{}")
+    fs.chmodSync(path.join(runtime, "tabs.json"), 0o644)
+    const scratchDirs = model.stateDirs(state, "/nowhere")
+    for (const step of model.privateStateSteps(scratchDirs, [path.join(runtime, "tabs.json"), path.join(runtime, "login")])) {
+      const result = spawnSync(step.command[0], step.command.slice(1))
+      assert.ok(result.status === 0 || step.step === "private", step.step + ": " + result.stderr)
+    }
+    for (const dir of ["omamosaic", "mosaic"]) {
+      assert.equal(mode(path.join(state, dir)), "700", dir)
+      for (const name of ["tiles.json", "saved.json"]) assert.equal(mode(path.join(state, dir, name)), "600", dir + "/" + name)
+    }
+    assert.equal(mode(path.join(runtime, "tabs.json")), "600")
+    // A symlink in the folder is not followed out of it.
+    assert.equal(mode(outside), "644")
+    // A fresh state folder is created private.
+    const fresh = model.stateDirs(path.join(scratch, "fresh"), "/nowhere")
+    fs.mkdirSync(path.join(scratch, "fresh"))
+    const made = model.privateStateSteps(fresh)[0].command
+    assert.equal(spawnSync(made[0], made.slice(1)).status, 0)
+    assert.equal(mode(fresh.current), "700")
+    // So is a file FileView created with the umask, once chmodded.
+    fs.writeFileSync(path.join(fresh.current, "layouts.json"), "{}", { mode: 0o644 })
+    const chmod = model.privateFilesCommand([path.join(fresh.current, "layouts.json")])
+    assert.equal(spawnSync(chmod[0], chmod.slice(1)).status, 0)
+    assert.equal(mode(path.join(fresh.current, "layouts.json")), "600")
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true })
+  }
+}

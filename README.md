@@ -102,7 +102,8 @@ OmaMosaic runs as your user in the Omarchy shell, never as root, and installs
 no packages. It launches your browser and talks to Hyprland with argument
 lists, never through a shell. The optional extension can read and control
 tiles on any site and reports only to the local shell; enabling it writes
-to your browser's config. The details and the privilege model are in
+to your browser's config. Its state files hold your tiles' full URLs and are
+readable only by you. The details and the privilege model are in
 [SECURITY.md](SECURITY.md).
 
 ## Using OmaMosaic

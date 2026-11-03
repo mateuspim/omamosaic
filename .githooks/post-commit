@@ -11,7 +11,9 @@
 [ "$(git rev-parse --abbrev-ref HEAD)" = master ] || exit 0
 installed="$HOME/.config/omarchy/plugins/pym.omamosaic"
 log="${XDG_STATE_HOME:-$HOME/.local/state}/omamosaic/plugin-update.log"
-mkdir -p "$(dirname "$log")"
+# Private like the rest of the state folder (SECURITY.md).
+mkdir -p -m 0700 "$(dirname "$log")"
+( umask 077; : >> "$log" )
 if [ -L "$installed" ]; then
   action="omarchy-shell shell rescanPlugins"
 elif [ -d "$installed/.git" ]; then

@@ -30,9 +30,10 @@ Chromium-family browser; those sites make their usual network requests.
   registration and its flags entry. The plugin also stores tile URLs in
   `~/.local/state/omamosaic/tiles.json`, saved sessions and their URLs in
   `saved.json`, and layouts in `layouts.json` (or under `$XDG_STATE_HOME`).
-  Do not save a URL containing a private token if you do not want that token
-  stored in these files. The bridge socket and tab mapping live under
-  `$XDG_RUNTIME_DIR`.
+  These files hold the full URLs, query strings included, so they are kept
+  owner-only: the folder `0700`, its files `0600`. Do not save a URL
+  containing a private token if you do not want that token stored in these
+  files. The bridge socket and tab mapping live under `$XDG_RUNTIME_DIR`.
 - **Commands:** OmaMosaic launches the selected Chromium-family browser through
   `uwsm-app`, runs `hyprctl` for tile and layout actions, and uses
   `omarchy-webapp-install` only when you save a tile as a web app. Processes
@@ -75,7 +76,15 @@ what OmaMosaic does with that access:
   `pym-omamosaic.sock`, `pym-omamosaic-tabs.json` and the login marker
   `pym-omamosaic-login`. On first start after the 2.0.0 rename it copies
   `$XDG_STATE_HOME/mosaic/` into the new folder without overwriting
-  anything, and leaves the old folder alone. Enabling the extension writes
+  anything, and leaves the old folder's contents alone.
+- **File modes**: on every start the service creates the state folder
+  `0700` (`mkdir -p -m 0700`), then makes both state folders, old and new,
+  `0700` and the regular files directly in them `0600`, as well as
+  `pym-omamosaic-tabs.json` and the login marker (`find … -exec chmod`,
+  never following a symlink inside the folders). Quickshell writes a new
+  file with the umask, so the first time the service saves each file it
+  also runs `chmod 0600` on it; later saves keep the mode. The git hook
+  creates the folder `0700` and its log `0600`. Enabling the extension writes
   `NativeMessagingHosts/pym.omamosaic.json` into each Chromium-family profile
   folder that exists and adds the extension to existing
   `*-flags.conf` files; **Turn off** removes both, and only removes a host
@@ -102,7 +111,8 @@ what OmaMosaic does with that access:
   `$XDG_RUNTIME_DIR` the service falls back to `/tmp/pym-omamosaic.sock`, which
   lacks that boundary (an open finding in the review).
 - **Secrets**: none are stored on purpose. Tile URLs are stored as given,
-  query strings included, in `tiles.json` and `saved.json`.
+  query strings included, in `tiles.json` and `saved.json`, because tiles
+  need them to open the same page; those files are owner-only (above).
 
 It never changes configuration outside its own files on load: the browser
 config changes only through **Enable** and **Turn off**, the swap key is a

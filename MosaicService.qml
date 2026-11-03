@@ -350,9 +350,10 @@ Scope {
   readonly property string storePath: stateDir === "" ? "" : stateDir + "/tiles.json"
 
   function migrateState(step, exitCode) {
-    var next = Model.stateMigrationStep(stateDirs, step, exitCode)
+    var next = Model.stateMigrationStep(stateDirs, step, exitCode, [tabsPath, loginMarkerPath])
     if (step === "copy" && exitCode !== 0) console.warn("OmaMosaic: cannot copy " + stateDirs.legacy + " to " + stateDirs.current + ": " + stateMigrationStderr.text.trim())
     if (step === "copy" && exitCode === 0) console.info("OmaMosaic: copied the state from " + stateDirs.legacy + " to " + stateDirs.current)
+    if (step === "private-dir" && exitCode !== 0) console.warn("OmaMosaic: cannot create " + stateDirs.current + ": " + stateMigrationStderr.text.trim())
     if (!next) return finishStateMigration()
     stateMigrationPhase = next.step
     stateMigrationStarted = false
@@ -360,6 +361,27 @@ Scope {
     stateMigrationTimeout.interval = next.step === "copy" ? 15000 : 3000
     stateMigrationTimeout.restart()
     stateMigrationProcess.running = true
+  }
+
+  // Files whose first save this run was followed by a chmod 0600, and the
+  // ones waiting for it (Model.privateFilesCommand).
+  property var privatePaths: ({})
+  property var privatePending: []
+
+  function keepPrivate(path) {
+    if (path === "" || privatePaths[path]) return
+    privatePaths[path] = true
+    privatePending = privatePending.concat([path])
+    privateFilesTimer.restart()
+  }
+
+  function runPrivateFiles() {
+    if (privateFilesProcess.running) return privateFilesTimer.restart()
+    var command = Model.privateFilesCommand(privatePending)
+    privatePending = []
+    if (!command) return
+    privateFilesProcess.command = command
+    privateFilesProcess.running = true
   }
 
   function finishStateMigration() {
@@ -1704,6 +1726,20 @@ Scope {
     onExited: function(exitCode) { if (root.stateMigrationPhase !== "") root.migrateState(root.stateMigrationPhase, exitCode) }
   }
 
+  Timer {
+    id: privateFilesTimer
+    interval: 100
+    onTriggered: root.runPrivateFiles()
+  }
+
+  // Nothing waits for this chmod (ADR 5); a failure is only logged.
+  Process {
+    id: privateFilesProcess
+    running: false
+    stderr: StdioCollector { id: privateFilesStderr; waitForEnd: true }
+    onExited: function(exitCode) { if (exitCode !== 0) console.warn("OmaMosaic: cannot make private: " + privateFilesStderr.text.trim()) }
+  }
+
   // Never block on the migration (ADR 5): past this, use the new folder.
   Timer {
     id: stateMigrationTimeout
@@ -1765,6 +1801,7 @@ Scope {
     id: tabsFile
     path: root.tabsPath
     printErrors: false
+    onSaved: root.keepPrivate(root.tabsPath)
     onLoaded: {
       try {
         var parsed = JSON.parse(text())
@@ -2021,6 +2058,7 @@ Scope {
       root.layoutsRead = true
       layoutSync.restart()
     }
+    onSaved: root.keepPrivate(root.layoutsPath)
     onSaveFailed: function(error) { root.layoutError = "Cannot write " + root.layoutsPath + ": " + error }
   }
 
@@ -2036,6 +2074,7 @@ Scope {
       root.savedRead = true
     }
     onLoadFailed: root.savedRead = true
+    onSaved: root.keepPrivate(root.savedPath)
     onSaveFailed: function(error) { root.savedError = "Cannot write " + root.savedPath + ": " + error }
   }
 
@@ -2043,6 +2082,7 @@ Scope {
     id: loginMarker
     path: root.loginMarkerPath
     printErrors: false
+    onSaved: root.keepPrivate(root.loginMarkerPath)
     onLoaded: if (root.loginState === "") root.loginState = "done"
     onLoadFailed: if (root.loginState === "") {
       root.loginState = "pending"
@@ -2064,7 +2104,9 @@ Scope {
     watchChanges: true
     printErrors: false
     onFileChanged: root.refresh()
-    onSaved: if (root.busy && root.phase === "add-save") {
+    onSaved: {
+      root.keepPrivate(root.storePath)
+      if (!root.busy || root.phase !== "add-save") return
       actionTimeout.stop()
       root.afterQueue()
     }
