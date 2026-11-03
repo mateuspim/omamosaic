@@ -1,4 +1,4 @@
--- Omarchy Mosaic's tiling layouts, registered in Hyprland at runtime by the
+-- OmaMosaic's tiling layouts, registered in Hyprland at runtime by the
 -- service (`hyprctl eval 'dofile("…/layouts.lua")'`) and chosen per
 -- workspace with `hl.workspace_rule({ layout = "lua:mosaic-grid" })`.
 -- They are Hyprland tiled layouts, not floating geometry, so swaps and

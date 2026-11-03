@@ -68,15 +68,15 @@ QtObject {
 
   // `mosaic-native-host status`, with sample paths.
   property var extensionSetup: ({ extensionId: "ibcnbknhphdnlpfglnhelicnpnnmepbo", extension: "/opt/mosaic/extension",
-    host: "/opt/mosaic/bin/mosaic-native-host", socket: "/run/user/1000/pym-mosaic.sock",
+    host: "/opt/mosaic/bin/mosaic-native-host", socket: "/run/user/1000/pym-omamosaic.sock",
     browsers: [{ name: "Chromium", folder: "chromium", registered: true }],
     flags: [{ file: "/opt/config/chromium-flags.conf", loaded: true }] })
   readonly property string extensionDir: "/opt/mosaic/extension"
-  readonly property string extensionVersion: "0.5.5"
+  readonly property string extensionVersion: "0.6.0"
   readonly property bool extensionOutdated: false
 
   // One connected browser whose app windows are the four tiles.
-  property var bridges: [{ browser: "/usr/lib/chromium/chromium", extension: "0.5.5", script: "background-10.js",
+  property var bridges: [{ browser: "/usr/lib/chromium/chromium", extension: "0.6.0", script: "background-11.js",
     features: ["mute", "volume", "follow", "navigate", "reload", "media", "favicon", "stream", "extensions", "fullscreen"],
     windows: [
       { id: 11, type: "app", focused: false, tabs: [{ id: 101, url: "https://www.twitch.tv", title: "Speedrun relay - Twitch", favIconUrl: "", audible: true, muted: false, volume: 1,

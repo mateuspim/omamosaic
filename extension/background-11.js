@@ -1,6 +1,6 @@
-// Omarchy Mosaic's browser side. It connects to the plugin's native host,
-// `pym.mosaic` (bin/mosaic-native-host), which relays messages to and from
-// the Mosaic service in the Omarchy shell, and it reports the browser's app
+// OmaMosaic's browser side. It connects to the plugin's native host,
+// `pym.omamosaic` (bin/mosaic-native-host), which relays messages to and from
+// the OmaMosaic service in the Omarchy shell, and it reports the browser's app
 // windows, which is how the service finds its tiles in this browser.
 //
 // Messages are JSON objects with a `type`:
@@ -18,7 +18,7 @@
 //                     reload { tab }
 //                     media { tab, action }: "play", "pause", or "toggle"
 //                     extensions {}: opens the browser's extensions page
-//                       in a new window, where Mosaic's Reload button
+//                       in a new window, where OmaMosaic's Reload button
 //                       loads a changed extension without a restart
 // Commands may carry an `id`, answered by `done`. A command's effect on the
 // tab arrives with the next windows report. Commands only ever touch tabs
@@ -37,7 +37,7 @@
 // reporting the new manifest's version; a new file name per change forces
 // the new code (Omarchy's Copy URL extension does the same). Rename the file,
 // update manifest.json, and change this together.
-const SCRIPT = "background-10.js";
+const SCRIPT = "background-11.js";
 // "follow": reported volumes follow changes made with the page's own
 // controls, and survive the worker stopping, so the service mirrors them
 // instead of setting its own again.
@@ -48,7 +48,7 @@ const SCRIPT = "background-10.js";
 // from the command line (Chromium opens a new tab instead), but an
 // extension may.
 const FEATURES = ["mute", "volume", "follow", "navigate", "reload", "media", "favicon", "stream", "extensions", "fullscreen"];
-const HOST = "pym.mosaic";
+const HOST = "pym.omamosaic";
 const RETRY_FIRST_MS = 1000;
 const RETRY_LAST_MS = 60000;
 
@@ -414,7 +414,7 @@ function pageMedia(action) {
 }
 
 // App windows only: tiles are `--app` windows, and the user's normal
-// browsing windows are none of Mosaic's business.
+// browsing windows are none of OmaMosaic's business.
 async function reportWindows(id) {
   await volumesReady;
   let windows = [];

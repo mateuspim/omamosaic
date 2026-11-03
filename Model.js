@@ -1,6 +1,6 @@
 .pragma library
 
-// Pure helpers for the Mosaic bar widget. Kept free of QML so node can test
+// Pure helpers for the OmaMosaic bar widget. Kept free of QML so node can test
 // them (see tests/model.test.js).
 
 // The `mosaic list --json` format versions this widget understands.
@@ -1064,7 +1064,7 @@ function customSummary(def) {
 
 // layouts.json: `{ version: 2, workspaces: { "8": { layout, before } },
 // custom: { SLUG: definition } }`, where `before` is the workspace's
-// layout before Mosaic changed it. Version 1 kept layouts per session;
+// layout before OmaMosaic changed it. Version 1 kept layouts per session;
 // those come back as `legacy` ({ SESSION: layout }) for the service to
 // move to the sessions' workspaces. An unreadable file has no layouts.
 function parseLayouts(text) {
@@ -1347,7 +1347,7 @@ function freeLayoutName(custom) {
 // `mosaic layout`: workspaces with a layout, then custom layouts.
 function layoutsText(state) {
   var ids = Object.keys(state.workspaces).sort(function(a, b) { return Number(a) - Number(b) })
-  var lines = ids.length === 0 ? ["No workspace has a Mosaic layout."]
+  var lines = ids.length === 0 ? ["No workspace has an OmaMosaic layout."]
     : ids.map(function(id) { return "workspace " + id + "  " + layoutLabel(state.workspaces[id].layout, state.custom) })
   var slugs = Object.keys(state.custom).sort()
   if (slugs.length > 0) {
@@ -1437,7 +1437,7 @@ function snapshotSession(list, session, layouts, volumes, audio, focusMode, prev
   for (var i = 0; i < sessions.length; i++) if (sessions[i].name === session) found = sessions[i]
   if (!found) return { error: "No session " + JSON.stringify(String(session)) + " is open" }
   var withUrl = found.tiles.filter(function(tile) { return savedUrl(tile.url) !== "" })
-  if (withUrl.length === 0) return { error: "Mosaic doesn't know the address of any tile in " + session }
+  if (withUrl.length === 0) return { error: "OmaMosaic doesn't know the address of any tile in " + session }
   var tiled = withUrl.filter(function(tile) { return tile.state !== "floating" })
   var anchor = tiled.length > 0 ? tiled[0] : withUrl[0]
   var entry = cleanSaved({
@@ -1893,7 +1893,11 @@ function cursorMoveExpression(position) {
 // The swap key's default, and the description its Hyprland bind carries,
 // which is how the service recognises its own bind.
 var DEFAULT_SWAP_KEY = "SUPER + SHIFT + S"
-var SWAP_BIND_DESCRIPTION = "Mosaic: swap the focused tile's web app"
+var SWAP_BIND_DESCRIPTION = "OmaMosaic: swap the focused tile's web app"
+// Mosaic's bind from before the 2.0.0 rename (ADR 18). It runs
+// `omarchy-shell pym.mosaic swap`, which nothing answers any more, so the
+// service replaces it instead of calling it a conflict.
+var LEGACY_SWAP_BIND_DESCRIPTIONS = ["Mosaic: swap the focused tile's web app"]
 // Hyprland's modifier names and mask bits.
 var KEY_MODIFIERS = { SHIFT: 1, CAPS: 2, CTRL: 4, CONTROL: 4, ALT: 8, MOD2: 16, MOD3: 32, SUPER: 64, WIN: 64, LOGO: 64, MOD4: 64, MOD5: 128 }
 
@@ -1934,16 +1938,32 @@ function bindConflict(bindsText, parsed) {
     var bind = binds[i]
     if (!bind || bind.submap !== "" || bind.modmask !== parsed.modmask) continue
     if (String(bind.key).toLowerCase() !== parsed.key.toLowerCase()) continue
-    if (bind.description === SWAP_BIND_DESCRIPTION) continue
+    if (bind.description === SWAP_BIND_DESCRIPTION || LEGACY_SWAP_BIND_DESCRIPTIONS.indexOf(bind.description) !== -1) continue
     return String(bind.description || bind.dispatcher || "another binding")
   }
   return ""
 }
 
+// Whether `hyprctl -j binds` output has a bind on the parsed key with one
+// of these descriptions.
+function bindOnKey(bindsText, parsed, descriptions) {
+  var binds
+  try {
+    binds = JSON.parse(String(bindsText || ""))
+  } catch (error) {
+    return false
+  }
+  if (!Array.isArray(binds) || !parsed || parsed.spec === "") return false
+  return binds.some(function(bind) {
+    return !!bind && descriptions.indexOf(bind.description) !== -1 && bind.submap === "" && bind.modmask === parsed.modmask
+      && String(bind.key).toLowerCase() === parsed.key.toLowerCase()
+  })
+}
+
 // Lua for `hyprctl eval` that binds or unbinds the swap key. The command is
 // a constant; only a spec that parseKeySpec produced goes in.
 function swapBindLua(spec) {
-  return 'hl.bind("' + spec + '", hl.dsp.exec_cmd("omarchy-shell pym.mosaic swap"), { description = "'
+  return 'hl.bind("' + spec + '", hl.dsp.exec_cmd("omarchy-shell pym.omamosaic swap"), { description = "'
     + SWAP_BIND_DESCRIPTION + '" })'
 }
 
@@ -2194,8 +2214,8 @@ function extensionNotice(setup, bridges) {
   if (state === "restart")
     return "Set up. Restart " + loadedBrowsers(setup) + " to load the extension, then verify. Closing the browser also closes its tiles."
   if (setup.flags.length === 0)
-    return "Audio control needs the Mosaic browser extension. No browser flags file was found, so load it by hand (below)."
-  return "Audio control needs the Mosaic browser extension. Enable registers it and loads it every time the browser starts."
+    return "Audio control needs the OmaMosaic browser extension. No browser flags file was found, so load it by hand (below)."
+  return "Audio control needs the OmaMosaic browser extension. Enable registers it and loads it every time the browser starts."
 }
 
 // The Extension tab's checklist: [{ label, detail, done }]. `check` is the last
@@ -2651,4 +2671,36 @@ function keyHints(context, all, apps) {
   }).map(function(hint) { return hint[0] === "#" ? [numbers, hint[1]] : hint })
   if (hints.more.length > 0) shown.push(["?", all ? "fewer" : "more"])
   return shown
+}
+
+// OmaMosaic's state folder, and Mosaic's from before the 2.0.0 rename
+// (ADR 18), under $XDG_STATE_HOME or ~/.local/state.
+function stateDirs(xdgStateHome, home) {
+  var state = String(xdgStateHome || "")
+  var base = state.indexOf("/") === 0 ? state : String(home || "") + "/.local/state"
+  return { current: base + "/omamosaic", legacy: base + "/mosaic" }
+}
+
+// The state files whose presence means the new folder is in use. Not the
+// folder itself: the git hooks create it for their log.
+var STATE_FILES = ["tiles.json", "saved.json", "layouts.json"]
+
+// The one-time state migration, one argv step at a time: stop if the new
+// folder already has a state file, stop if there is no old folder, else
+// copy the old folder's files into the new one. -n never overwrites and the
+// old folder is left as it was, so a downgrade still finds it. Returns the
+// next step, or null when done; `step` is the step that just ran and
+// `exitCode` its result.
+function stateMigrationStep(dirs, step, exitCode) {
+  if (step === "") {
+    var test = ["test"]
+    STATE_FILES.forEach(function(name, index) {
+      if (index > 0) test.push("-o")
+      test.push("-e", dirs.current + "/" + name)
+    })
+    return { step: "check-current", command: test }
+  }
+  if (step === "check-current" && exitCode !== 0) return { step: "check-legacy", command: ["test", "-d", dirs.legacy] }
+  if (step === "check-legacy" && exitCode === 0) return { step: "copy", command: ["cp", "-a", "-n", "-T", dirs.legacy, dirs.current] }
+  return null
 }

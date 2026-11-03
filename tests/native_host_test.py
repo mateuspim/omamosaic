@@ -34,10 +34,10 @@ OMARCHY = "/usr/share/omarchy/default/chromium/extensions/copy-url,/usr/share/om
 class Flags(unittest.TestCase):
     def setUp(self):
         self.scratch = tempfile.TemporaryDirectory()
-        self.extension = os.path.join(self.scratch.name, "plugins", "pym.mosaic", "extension")
+        self.extension = os.path.join(self.scratch.name, "plugins", "pym.omamosaic", "extension")
         os.makedirs(self.extension)
         with open(os.path.join(self.extension, "manifest.json"), "w") as file:
-            json.dump({"name": "Omarchy Mosaic"}, file)
+            json.dump({"name": "OmaMosaic"}, file)
 
     def tearDown(self):
         self.scratch.cleanup()
@@ -55,9 +55,28 @@ class Flags(unittest.TestCase):
     def test_is_idempotent_and_replaces_a_moved_plugin(self):
         once = host.with_extension("--load-extension=" + OMARCHY + "\n", self.extension)
         self.assertEqual(host.with_extension(once, self.extension), once)
-        moved = "--load-extension=" + OMARCHY + ",/gone/plugins/pym.mosaic/extension\n"
+        moved = "--load-extension=" + OMARCHY + ",/gone/plugins/pym.omamosaic/extension\n"
         self.assertEqual(host.with_extension(moved, self.extension),
                          "--load-extension=" + OMARCHY + "," + self.extension + "\n")
+
+    def test_replaces_the_pre_rename_extension(self):
+        # Mosaic became OmaMosaic in 2.0.0 (ADR 18): an entry for the old
+        # plugin folder, gone or still holding the "Omarchy Mosaic" manifest,
+        # gives way to the new one.
+        gone = "--load-extension=" + OMARCHY + ",/gone/plugins/pym.mosaic/extension\n"
+        self.assertEqual(host.with_extension(gone, self.extension),
+                         "--load-extension=" + OMARCHY + "," + self.extension + "\n")
+        old = os.path.join(self.scratch.name, "old", "pym.mosaic", "extension")
+        os.makedirs(old)
+        with open(os.path.join(old, "manifest.json"), "w") as file:
+            json.dump({"name": "Omarchy Mosaic"}, file)
+        self.assertEqual(host.with_extension("--load-extension=" + old + "\n", self.extension),
+                         "--load-extension=" + self.extension + "\n")
+
+    def test_keeps_an_unrelated_extension_at_a_gone_path(self):
+        # Another plugin that ends in ".mosaic" is not ours.
+        text = "--load-extension=/gone/plugins/naolselemon.mosaic/extension\n"
+        self.assertEqual(host.without_extension(text, self.extension), text)
 
     def test_extends_the_last_line(self):
         text = "--load-extension=/a\n--x\n--load-extension=/b\n"
@@ -117,7 +136,7 @@ class Setup(unittest.TestCase):
         self.assertTrue(os.path.islink(os.path.join(self.config, "brave-origin-flags.conf")))
         self.assertIn("," + self.extension, read(self.real_flags))
         self.assertEqual(os.stat(self.real_flags).st_mode & 0o777, 0o600)
-        manifest = load(os.path.join(self.config, "chromium", "NativeMessagingHosts", "pym.mosaic.json"))
+        manifest = load(os.path.join(self.config, "chromium", "NativeMessagingHosts", "pym.omamosaic.json"))
         self.assertEqual(manifest["allowed_origins"], ["chrome-extension://" + host.EXTENSION_ID + "/"])
         self.assertTrue(os.access(manifest["path"], os.X_OK))
 
@@ -145,11 +164,40 @@ class Setup(unittest.TestCase):
     def test_remove_keeps_a_replaced_host_registration(self):
         host.setup(self.extension)
         path = host.host_file("chromium")
-        replacement = {"name": "pym.mosaic", "path": "/another/host"}
+        replacement = {"name": "pym.omamosaic", "path": "/another/host"}
         with open(path, "w") as file:
             json.dump(replacement, file)
         host.remove(self.extension)
         self.assertEqual(load(path), replacement)
+
+    def write_legacy_host(self, manifest):
+        path = host.host_file("chromium", "pym.mosaic")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w") as file:
+            json.dump(manifest, file)
+        return path
+
+    def legacy_manifest(self):
+        return {"name": "pym.mosaic", "description": "Omarchy Mosaic bridge to the Omarchy shell",
+                "path": "/old/checkout/bin/mosaic-native-host", "type": "stdio",
+                "allowed_origins": ["chrome-extension://" + host.EXTENSION_ID + "/"]}
+
+    def test_setup_removes_the_pre_rename_host_registration(self):
+        path = self.write_legacy_host(self.legacy_manifest())
+        host.setup(self.extension)
+        self.assertFalse(os.path.exists(path))
+        self.assertTrue(os.path.exists(host.host_file("chromium")))
+
+    def test_setup_keeps_a_foreign_pym_mosaic_registration(self):
+        foreign = dict(self.legacy_manifest(), path="/another/host")
+        path = self.write_legacy_host(foreign)
+        host.setup(self.extension)
+        host.remove(self.extension)
+        self.assertEqual(load(path), foreign)
+        other_origin = dict(self.legacy_manifest(), allowed_origins=["chrome-extension://abc/"])
+        self.write_legacy_host(other_origin)
+        host.remove(self.extension)
+        self.assertEqual(load(path), other_origin)
 
 
 class Relay(unittest.TestCase):

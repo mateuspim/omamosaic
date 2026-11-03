@@ -9,7 +9,7 @@ import "Model.js" as Model
 
 // A card drawn over a tile that swaps its web app: numbered web app
 // buttons, and the tile's address, ready to edit. The swap key opens it
-// (`omarchy-shell pym.mosaic swap`). It only exists while it is open, so it
+// (`omarchy-shell pym.omamosaic swap`). It only exists while it is open, so it
 // never sits over a video catching clicks.
 Scope {
   id: root
@@ -101,7 +101,7 @@ Scope {
   }
 
   function notify(text) {
-    Quickshell.execDetached(["notify-send", "--app-name=Mosaic", "Mosaic", text])
+    Quickshell.execDetached(["notify-send", "--app-name=OmaMosaic", "OmaMosaic", text])
   }
 
   // The label of the replace this card started, so its error can be shown.
@@ -150,7 +150,7 @@ Scope {
     implicitWidth: root.rect ? root.rect.width : 1
     implicitHeight: root.rect ? root.rect.height : 1
     color: "transparent"
-    WlrLayershell.namespace: "pym-mosaic-swap"
+    WlrLayershell.namespace: "pym-omamosaic-swap"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Omarchy Mosaic's native messaging host and its installer.
+"""OmaMosaic's native messaging host and its installer.
 
-Run by a Chromium-family browser for the Mosaic extension (extension/), it
+Run by a Chromium-family browser for the OmaMosaic extension (extension/), it
 relays JSON messages between the extension (length-prefixed on stdin and
-stdout) and the Mosaic service in the Omarchy shell (one JSON object per
+stdout) and the OmaMosaic service in the Omarchy shell (one JSON object per
 line on a Unix socket). It keeps running while the browser keeps the
 extension's port open and reconnects whenever the shell restarts.
 
@@ -27,8 +27,14 @@ import tempfile
 import threading
 import time
 
-HOST_NAME = "pym.mosaic"
+HOST_NAME = "pym.omamosaic"
 EXTENSION_ID = "ibcnbknhphdnlpfglnhelicnpnnmepbo"
+# Mosaic was renamed OmaMosaic in 2.0.0 (ADR 18). The extension kept its key,
+# so its ID, but its name, plugin folder and host name changed. Setup still
+# recognises the old ones, to replace them rather than leave them behind.
+EXTENSION_NAMES = ("OmaMosaic", "Omarchy Mosaic")
+PLUGIN_FOLDERS = ("pym.omamosaic", "pym.mosaic")
+LEGACY_HOST_NAMES = ("pym.mosaic",)
 MAX_MESSAGE = 1024 * 1024
 RETRY_SECONDS = 2
 
@@ -51,7 +57,7 @@ BROWSERS = [
 
 # The flags files that Arch's browser launchers read, one flag per line.
 # Omarchy loads its own extensions from these with --load-extension, so
-# Mosaic does the same, but only in files that already exist.
+# OmaMosaic does the same, but only in files that already exist.
 FLAGS_FILES = [
     "brave-origin-flags.conf",
     "brave-flags.conf",
@@ -79,7 +85,7 @@ def socket_path():
     if override:
         return override
     runtime = os.environ.get("XDG_RUNTIME_DIR", "") or "/run/user/%d" % os.getuid()
-    return os.path.join(runtime, "pym-mosaic.sock")
+    return os.path.join(runtime, "pym-omamosaic.sock")
 
 
 # --- Flags files -------------------------------------------------------------
@@ -94,15 +100,17 @@ def is_mosaic_extension(item, directory):
         return True
     try:
         with open(os.path.join(item, "manifest.json"), encoding="utf-8") as file:
-            return json.load(file).get("name") == "Omarchy Mosaic"
+            return json.load(file).get("name") in EXTENSION_NAMES
     except (OSError, ValueError, AttributeError):
         # A plugin that moved leaves a path to nothing behind.
-        return item.rstrip("/").endswith("/pym.mosaic/extension") and not os.path.exists(item)
+        trimmed = item.rstrip("/")
+        moved = any(trimmed.endswith("/%s/extension" % folder) for folder in PLUGIN_FOLDERS)
+        return moved and not os.path.exists(item)
 
 
 def with_extension(text, directory):
     """The flags text with DIR on its --load-extension line, and any older
-    Mosaic entry gone. The last --load-extension line is the one Chromium
+    OmaMosaic entry gone. The last --load-extension line is the one Chromium
     uses, so that is the one extended."""
     lines = without_extension(text, directory).split("\n")
     for index in range(len(lines) - 1, -1, -1):
@@ -116,7 +124,7 @@ def with_extension(text, directory):
 
 
 def without_extension(text, directory):
-    """The flags text with every Mosaic entry taken off --load-extension."""
+    """The flags text with every OmaMosaic entry taken off --load-extension."""
     out = []
     for line in text.split("\n"):
         stripped = line.strip()
@@ -170,15 +178,38 @@ def read_text(path):
 def host_manifest():
     return {
         "name": HOST_NAME,
-        "description": "Omarchy Mosaic bridge to the Omarchy shell",
+        "description": "OmaMosaic bridge to the Omarchy shell",
         "path": os.path.realpath(__file__),
         "type": "stdio",
         "allowed_origins": ["chrome-extension://%s/" % EXTENSION_ID],
     }
 
 
-def host_file(folder):
-    return os.path.join(config_home(), folder, "NativeMessagingHosts", HOST_NAME + ".json")
+def host_file(folder, name=HOST_NAME):
+    return os.path.join(config_home(), folder, "NativeMessagingHosts", name + ".json")
+
+
+def is_legacy_host(manifest, name):
+    """Whether a pre-rename host manifest is one Mosaic setup wrote: its
+    name, our extension as the only origin, and this host's file name. A
+    file another program replaced it with is left alone."""
+    return (isinstance(manifest, dict)
+            and manifest.get("name") == name
+            and manifest.get("type") == "stdio"
+            and manifest.get("allowed_origins") == ["chrome-extension://%s/" % EXTENSION_ID]
+            and os.path.basename(str(manifest.get("path", ""))) == os.path.basename(__file__))
+
+
+def remove_legacy_hosts():
+    for folder, _ in BROWSERS:
+        for name in LEGACY_HOST_NAMES:
+            path = host_file(folder, name)
+            try:
+                current = json.loads(read_text(path))
+            except (OSError, ValueError):
+                continue
+            if is_legacy_host(current, name):
+                os.unlink(path)
 
 
 def status(directory):
@@ -229,6 +260,7 @@ def setup(directory):
     for folder, _ in BROWSERS:
         if os.path.isdir(os.path.join(config_home(), folder)):
             write_atomically(host_file(folder), text)
+    remove_legacy_hosts()
     for name in FLAGS_FILES:
         path = os.path.join(config_home(), name)
         if os.path.isfile(path):
@@ -247,6 +279,7 @@ def remove(directory):
             continue
         if current == host_manifest():
             os.unlink(path)
+    remove_legacy_hosts()
     for name in FLAGS_FILES:
         path = os.path.join(config_home(), name)
         if os.path.isfile(path):
