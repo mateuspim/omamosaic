@@ -14,6 +14,14 @@ and `layouts.json`, it copies the old folder's files into it (`cp -a -n`,
 never overwriting) before reading any state, and leaves the old folder as
 it was. The formats did not change.
 
+The state files hold full URLs, so they are owner-only. On every start,
+before reading any state, the service creates the folder `0700`, then sets
+both folders, old and new, to `0700` and the regular files directly in
+them, plus `pym-omamosaic-tabs.json` and the login marker, to `0600`
+(`Model.privateStateSteps`; symlinks inside are not followed). FileView
+creates a file `0644` under the usual umask, so the first save of each
+file is followed by `chmod 0600`; FileView keeps an existing file's mode.
+
 ## `tiles.json`
 
 The tiles' URLs and order, in the format the Rust CLI wrote, so its tiles

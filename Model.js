@@ -2688,10 +2688,12 @@ var STATE_FILES = ["tiles.json", "saved.json", "layouts.json"]
 // The one-time state migration, one argv step at a time: stop if the new
 // folder already has a state file, stop if there is no old folder, else
 // copy the old folder's files into the new one. -n never overwrites and the
-// old folder is left as it was, so a downgrade still finds it. Returns the
-// next step, or null when done; `step` is the step that just ran and
-// `exitCode` its result.
-function stateMigrationStep(dirs, step, exitCode) {
+// old folder is left as it was, so a downgrade still finds it. Every path
+// then ends with the steps that keep the state private (privateStateSteps).
+// Returns the next step, or null when done; `step` is the step that just ran
+// and `exitCode` its result. `runtimeFiles` are the runtime files to tighten
+// too.
+function stateMigrationStep(dirs, step, exitCode, runtimeFiles) {
   if (step === "") {
     var test = ["test"]
     STATE_FILES.forEach(function(name, index) {
@@ -2702,5 +2704,36 @@ function stateMigrationStep(dirs, step, exitCode) {
   }
   if (step === "check-current" && exitCode !== 0) return { step: "check-legacy", command: ["test", "-d", dirs.legacy] }
   if (step === "check-legacy" && exitCode === 0) return { step: "copy", command: ["cp", "-a", "-n", "-T", dirs.legacy, dirs.current] }
+  if (step === "check-current" || step === "check-legacy" || step === "copy") return privateStateSteps(dirs, runtimeFiles)[0]
+  if (step === "private-dir") return privateStateSteps(dirs, runtimeFiles)[1]
   return null
+}
+
+// The state files hold full tile and session URLs, query strings included
+// (SECURITY.md), and Quickshell's FileView writes with the umask: a new file
+// is 0644 and a folder it makes 0755 (checked with quickshell 0.3.2 and
+// Qt 6.12, 2026-11-03). So the state folder is made 0700 before any FileView
+// can make it, and then the state folders, old and new, become 0700 and the
+// files directly in them 0600, as do the runtime files. This also fixes
+// installs from before 2.0.2 and Mosaic's folder copied by the 2.0.0
+// migration (`cp -a` keeps its 0755). mkdir -m sets the mode only on a
+// folder it creates, hence the find. The trailing / follows a state folder
+// that is a symlink, while find's default -P leaves symlinks inside alone,
+// so nothing outside the folders changes. find exits 1 for a missing path,
+// which is fine: it carries on with the rest.
+function privateStateSteps(dirs, runtimeFiles) {
+  var paths = [dirs.current + "/", dirs.legacy + "/"].concat((runtimeFiles || []).filter(function(path) { return path !== "" }))
+  return [
+    { step: "private-dir", command: ["mkdir", "-p", "-m", "0700", "--", dirs.current] },
+    { step: "private", command: ["find"].concat(paths, ["-maxdepth", "1",
+      "(", "-type", "d", "-exec", "chmod", "0700", "{}", "+", ")", "-o",
+      "(", "-type", "f", "-exec", "chmod", "0600", "{}", "+", ")"]) }
+  ]
+}
+
+// Makes files private after FileView first writes them, since a file it
+// creates gets the umask's 0644; later saves keep the file's mode.
+function privateFilesCommand(paths) {
+  var wanted = (paths || []).filter(function(path) { return typeof path === "string" && path !== "" })
+  return wanted.length === 0 ? null : ["chmod", "0600", "--"].concat(wanted)
 }

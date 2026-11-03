@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **Security**: the state files are now private to you. `tiles.json` and
+  `saved.json` hold full URLs, query strings included, and were readable
+  by other local users (a `0644` file in a `0755` folder). On every start
+  OmaMosaic makes `~/.local/state/omamosaic/` and the old
+  `~/.local/state/mosaic/` `0700` and their files `0600`, as well as its
+  tab mapping and login marker, and it makes each file it creates `0600`.
+  Existing installs are fixed on the next shell start; nothing else
+  changes. Reported in the marketplace review.
+
 ## 2.0.1 (2026-11-03)
 
 - **Fixed**: the marketplace turned the submission down because it counted
