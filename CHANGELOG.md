@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.2 (2026-11-03)
 
 - **Security**: the state files are now private to you. `tiles.json` and
   `saved.json` hold full URLs, query strings included, and were readable
