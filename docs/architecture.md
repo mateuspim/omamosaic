@@ -64,7 +64,7 @@ has the same PID, `application.name`, and `media.name` ("Playback").
 Separate browser instances per tile would fix that at the cost of separate
 logins and memory; the user chose an extension instead.
 
-- **Pieces.** `extension/` (Manifest V3, with a fixed `key`, so its ID is
+- **Pieces.** `browser/extension/` (Manifest V3, with a fixed `key`, so its ID is
   always `ibcnbknhphdnlpfglnhelicnpnnmepbo`), the native messaging host
   `bin/mosaic-native-host` (Python 3, standard library only), and a
   Quickshell `SocketServer` in the service at `$XDG_RUNTIME_DIR/pym-omamosaic.sock`

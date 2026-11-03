@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.1 (2026-11-03)
+
+- **Fixed**: the marketplace turned the submission down because it counted
+  the browser extension's `manifest.json` as a second plugin. The extension
+  moved from `extension/` to `browser/extension/`
+  ([ADR 19](docs/adr/0019-keep-the-extension-two-folders-down.md)); it is
+  the same extension 0.6.0 with the same ID. Press **Enable** on the
+  Extension tab once and restart the browser so it loads from the new path.
+  `npm test` now runs the marketplace's one-manifest rule.
+
 ## 2.0.0 (2026-11-03)
 
 - **Mosaic is now OmaMosaic**, plugin `pym.omamosaic`, ahead of its

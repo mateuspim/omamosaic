@@ -23,7 +23,7 @@ Chromium-family browser; those sites make their usual network requests.
   arbitrary web apps and watches their video and volume. It reports app-window
   tab URLs, titles, favicons, audio and stream state to the local shell; it
   does not send them to an OmaMosaic server. The native host accepts only the
-  extension ID in `extension/manifest.json`.
+  extension ID in `browser/extension/manifest.json`.
 - **Local changes:** enabling the extension registers `pym.omamosaic` as a native
   messaging host in browser profiles found under `~/.config` and adds its
   folder to existing browser flags files. Turn off removes OmaMosaic's own host

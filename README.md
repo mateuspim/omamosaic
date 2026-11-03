@@ -73,7 +73,7 @@ rm -f ~/.local/bin/omamosaic ~/.local/bin/mosaic   # if you linked them
 
 Removed the plugin first? Delete `~/.config/*/NativeMessagingHosts/pym.omamosaic.json`
 (and `~/.config/BraveSoftware/*/NativeMessagingHosts/pym.omamosaic.json`) and
-take `…/plugins/pym.omamosaic/extension` off the `--load-extension=` line in
+take `…/plugins/pym.omamosaic/browser/extension` (before 2.0.1, `…/extension`) off the `--load-extension=` line in
 `~/.config/*-flags.conf`. OmaMosaic's state stays in
 `~/.local/state/omamosaic/` (tiles, layouts, saved sessions); delete that
 folder to forget it.

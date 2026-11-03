@@ -48,7 +48,7 @@ out of git (`.gitignore`): update it as work goes, but never commit it.
   `SwapVeilArt.qml` beside them. Pure logic in `Model.js`; Hyprland layouts
   in `layouts.lua`; the `omamosaic` wrapper, its `mosaic` alias and the
   native host in `bin/`; the
-  browser extension in `extension/`; containment probes in `examples/`;
+  browser extension in `browser/extension/`; containment probes in `examples/`;
   tests and the offscreen harness in `tests/`; git hooks in `.githooks/`;
   brand sources in `docs/brand/`. Don't add QML subfolders, and keep new
   components inline in the file that uses them: a new sibling QML file was

@@ -2047,7 +2047,7 @@ function splitLines(text) {
     .filter(function(line) { return line !== "" })
 }
 
-// The browser extension (extension/), which reaches the service through the
+// The browser extension (browser/extension/), which reaches the service through the
 // native host (bin/mosaic-native-host) and the service's bridge socket.
 
 // A line from the bridge socket: a JSON object with a string `type`, or null.

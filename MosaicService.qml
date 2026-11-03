@@ -118,7 +118,7 @@ Scope {
   readonly property string layoutsPath: storePath.replace(/tiles\.json$/, "layouts.json")
   readonly property string layoutsLua: Model.layoutsLoadLua(Qt.resolvedUrl("layouts.lua").toString().replace(/^file:\/\//, ""))
 
-  // The browser extension (extension/). Each browser's copy talks to the
+  // The browser extension (browser/extension/). Each browser's copy talks to the
   // service through the native host, bin/mosaic-native-host, which connects
   // to `bridgePath`. `extensionSetup` is the host's `status` output (null
   // until it answers), `bridges` the connected extensions ({ browser,
@@ -130,7 +130,7 @@ Scope {
   property var extensionCheck: null
   property bool verifying: false
   readonly property string extensionState: Model.extensionState(extensionSetup, bridges)
-  readonly property string extensionDir: Qt.resolvedUrl("extension").toString().replace(/^file:\/\//, "")
+  readonly property string extensionDir: Qt.resolvedUrl("browser/extension").toString().replace(/^file:\/\//, "")
   readonly property string hostProgram: Qt.resolvedUrl("bin/mosaic-native-host").toString().replace(/^file:\/\//, "")
   // The host uses the same override, so a test shell can have its own.
   readonly property string bridgePath: {
@@ -1997,7 +1997,7 @@ Scope {
 
   FileView {
     id: extensionManifest
-    path: Qt.resolvedUrl("extension/manifest.json").toString().replace(/^file:\/\//, "")
+    path: Qt.resolvedUrl("browser/extension/manifest.json").toString().replace(/^file:\/\//, "")
     printErrors: false
   }
 

@@ -4,9 +4,9 @@ Three pieces carry messages between the browser and the shell
 ([ADR 8](../adr/0008-per-tile-audio-through-a-browser-extension.md)):
 
 ```
-extension/ (worker)  ⇄  bin/mosaic-native-host  ⇄  MosaicService.qml
- connectNative          length-prefixed stdio        one JSON object per line
- "pym.omamosaic"           ↔ Unix socket                on $XDG_RUNTIME_DIR/pym-omamosaic.sock
+browser/extension/ (worker)  ⇄  bin/mosaic-native-host  ⇄  MosaicService.qml
+ connectNative                   length-prefixed stdio        one JSON object per line
+ "pym.omamosaic"                    ↔ Unix socket                on $XDG_RUNTIME_DIR/pym-omamosaic.sock
 ```
 
 ## The extension

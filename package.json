@@ -1,11 +1,11 @@
 {
   "name": "omamosaic",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Mateus Pim",
   "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/model.test.js && lua tests/layouts_test.lua && python3 tests/native_host_test.py"
+    "test": "node tests/layout.test.js && node tests/model.test.js && lua tests/layouts_test.lua && python3 tests/native_host_test.py"
   }
 }
