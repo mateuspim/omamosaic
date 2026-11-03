@@ -34,7 +34,7 @@ OMARCHY = "/usr/share/omarchy/default/chromium/extensions/copy-url,/usr/share/om
 class Flags(unittest.TestCase):
     def setUp(self):
         self.scratch = tempfile.TemporaryDirectory()
-        self.extension = os.path.join(self.scratch.name, "plugins", "pym.omamosaic", "extension")
+        self.extension = os.path.join(self.scratch.name, "plugins", "pym.omamosaic", "browser", "extension")
         os.makedirs(self.extension)
         with open(os.path.join(self.extension, "manifest.json"), "w") as file:
             json.dump({"name": "OmaMosaic"}, file)
@@ -58,6 +58,17 @@ class Flags(unittest.TestCase):
         moved = "--load-extension=" + OMARCHY + ",/gone/plugins/pym.omamosaic/extension\n"
         self.assertEqual(host.with_extension(moved, self.extension),
                          "--load-extension=" + OMARCHY + "," + self.extension + "\n")
+
+    def test_replaces_the_extension_from_before_it_moved_into_browser(self):
+        # 2.0.1 moved the extension from extension/ to browser/extension/, so
+        # the marketplace sees one plugin manifest. The old top-level path is
+        # gone after the update and gives way to the new one.
+        for stale in ("/gone/plugins/pym.omamosaic/extension",
+                      "/gone/plugins/pym.omamosaic/browser/extension",
+                      "/gone/plugins/pym.mosaic/browser/extension"):
+            text = "--load-extension=" + OMARCHY + "," + stale + "\n"
+            self.assertEqual(host.with_extension(text, self.extension),
+                             "--load-extension=" + OMARCHY + "," + self.extension + "\n")
 
     def test_replaces_the_pre_rename_extension(self):
         # Mosaic became OmaMosaic in 2.0.0 (ADR 18): an entry for the old
@@ -102,7 +113,7 @@ class Setup(unittest.TestCase):
         self.config = os.path.join(self.scratch.name, "config")
         os.makedirs(os.path.join(self.config, "BraveSoftware", "Brave-Origin"))
         os.makedirs(os.path.join(self.config, "chromium"))
-        self.extension = os.path.join(ROOT, "extension")
+        self.extension = os.path.join(ROOT, "browser", "extension")
         self.saved = os.environ.get("XDG_CONFIG_HOME")
         os.environ["XDG_CONFIG_HOME"] = self.config
         # The flags file is a symlink, as in a dotfiles checkout.

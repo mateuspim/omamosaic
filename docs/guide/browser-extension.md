@@ -1,7 +1,7 @@
 # The browser extension (for audio control)
 
 Audio control needs a small browser extension,
-`extension/`. Every tile shares one browser process and one audio stream
+`browser/extension/`. Every tile shares one browser process and one audio stream
 source, so PipeWire can't tell tiles apart; the extension can, from inside
 the browser. It talks to the plugin through a native messaging host,
 `bin/mosaic-native-host` (Python 3, which Omarchy already has).

@@ -1,6 +1,6 @@
 # Security review (2026-10-19)
 
-Scope: `bin/mosaic`, `bin/mosaic-native-host`, `extension/`, `Model.js`,
+Scope: `bin/mosaic`, `bin/mosaic-native-host`, `browser/extension/`, `Model.js`,
 `MosaicService.qml`, the manifest, and install instructions. This is a source
 review and local test run, not a penetration test of Chromium, Hyprland, or
 Omarchy. No third-party runtime package is bundled in this repository.

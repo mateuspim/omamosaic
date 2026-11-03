@@ -33,6 +33,7 @@ Record 18 was written when the decision was made, on 2026-11-03.
 | [16](0016-recover-dropped-streams-with-backoff.md) | Detect dropped streams in the page and reload them with backoff | 2026-10-15 | Accepted |
 | [17](0017-offscreen-preview-harness.md) | Check the panel and render the hero offscreen with a fake service | 2026-10-21 | Accepted |
 | [18](0018-rename-to-omamosaic-with-a-new-id.md) | Rename Mosaic to OmaMosaic with a new plugin ID | 2026-11-03 | Accepted |
+| [19](0019-keep-the-extension-two-folders-down.md) | Keep the browser extension two folders down | 2026-11-03 | Accepted |
 
 ## Rules
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """OmaMosaic's native messaging host and its installer.
 
-Run by a Chromium-family browser for the OmaMosaic extension (extension/), it
+Run by a Chromium-family browser for the OmaMosaic extension (browser/extension/), it
 relays JSON messages between the extension (length-prefixed on stdin and
 stdout) and the OmaMosaic service in the Omarchy shell (one JSON object per
 line on a Unix socket). It keeps running while the browser keeps the
@@ -35,6 +35,8 @@ EXTENSION_ID = "ibcnbknhphdnlpfglnhelicnpnnmepbo"
 EXTENSION_NAMES = ("OmaMosaic", "Omarchy Mosaic")
 PLUGIN_FOLDERS = ("pym.omamosaic", "pym.mosaic")
 LEGACY_HOST_NAMES = ("pym.mosaic",)
+# Where the extension lives inside the plugin folder, now and before 2.0.1.
+EXTENSION_PLACES = ("browser/extension", "extension")
 MAX_MESSAGE = 1024 * 1024
 RETRY_SECONDS = 2
 
@@ -102,9 +104,12 @@ def is_mosaic_extension(item, directory):
         with open(os.path.join(item, "manifest.json"), encoding="utf-8") as file:
             return json.load(file).get("name") in EXTENSION_NAMES
     except (OSError, ValueError, AttributeError):
-        # A plugin that moved leaves a path to nothing behind.
+        # A plugin that moved leaves a path to nothing behind. Before 2.0.1
+        # the extension sat at the plugin's top level (extension/); it now
+        # sits in browser/extension/, so either can be a stale entry.
         trimmed = item.rstrip("/")
-        moved = any(trimmed.endswith("/%s/extension" % folder) for folder in PLUGIN_FOLDERS)
+        moved = any(trimmed.endswith("/%s/%s" % (folder, place))
+                    for folder in PLUGIN_FOLDERS for place in EXTENSION_PLACES)
         return moved and not os.path.exists(item)
 
 
