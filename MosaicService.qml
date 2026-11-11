@@ -1336,7 +1336,7 @@ Scope {
 
   onExtensionCheckChanged: {
     if (!tabsLoaded || !extensionCheck || !extensionCheck.tiles) return
-    var kept = Model.keepTabs(savedTabs, extensionCheck, Model.listTiles(list).map(function(tile) { return tile.address }))
+    var kept = Model.keepTabs(savedTabs, extensionCheck, Model.listTiles(list).map(function(tile) { return tile.address }), bridges)
     if (JSON.stringify(kept) === JSON.stringify(savedTabs)) return
     savedTabs = kept
     tabsFile.setText(JSON.stringify(kept))

@@ -2360,15 +2360,30 @@ function reconcileVolumes(volumes, audio, live, follows, recent) {
 }
 
 // The tile-to-tab pairings worth keeping (see matchTiles' `previous`):
-// `saved` ones, updated by the latest `check`, for the tiles at
-// `addresses` only. Saved across shell restarts, since a restart forgets
-// them and the browser's tab ids outlive it.
-function keepTabs(saved, check, addresses) {
-  var merged = Object.assign({}, saved || {}, check && check.tiles ? check.tiles : {})
+// `saved` ones, updated by the latest `check`. Saved across shell
+// restarts, since a restart forgets them and the browser's tab ids
+// outlive it. A pairing is kept for a tile at `addresses`, or for one
+// missing from them whose tab `bridges` still report: just after a shell
+// start the tile list can lack tiles Quickshell has no Hyprland details
+// for yet, and dropping their pairings then left look-alike tiles
+// unmatched (seen 2026-11-11). A saved pairing whose tab the check gave
+// another tile is dropped.
+function keepTabs(saved, check, addresses, bridges) {
+  var fresh = check && check.tiles ? check.tiles : {}
+  var merged = Object.assign({}, saved || {}, fresh)
+  var claimed = Object.keys(fresh).map(function(address) { return fresh[address].bridge + ":" + fresh[address].tab })
+  function tabExists(entry) {
+    var bridge = bridges ? bridges[entry.bridge] : null
+    return !!bridge && (bridge.windows || []).some(function(window) {
+      return window.tabs.some(function(tab) { return tab.id === entry.tab })
+    })
+  }
   var kept = {}
-  addresses.forEach(function(address) {
+  Object.keys(merged).forEach(function(address) {
     var entry = merged[address]
-    if (entry && Number.isInteger(entry.bridge) && Number.isInteger(entry.tab)) kept[address] = entry
+    if (!entry || !Number.isInteger(entry.bridge) || !Number.isInteger(entry.tab)) return
+    if (!fresh[address] && claimed.indexOf(entry.bridge + ":" + entry.tab) !== -1) return
+    if (addresses.indexOf(address) !== -1 || tabExists(entry)) kept[address] = entry
   })
   return kept
 }

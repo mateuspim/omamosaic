@@ -170,7 +170,9 @@ logins and memory; the user chose an extension instead.
   app window on the same site stuck, and a swap in place navigated that
   window instead of the tile (seen 2026-10-11).
   Pairings are saved beside the socket (`pym-omamosaic-tabs.json` in
-  `$XDG_RUNTIME_DIR`), since tab ids outlive a shell restart. Tiles alike
+  `$XDG_RUNTIME_DIR`), since tab ids outlive a shell restart. A pairing
+  outlives its tile's absence from the list while its tab exists, since
+  the list fills in over the first moments after a shell start. Tiles alike
   in title and site, never paired before, are told apart by focus: when one
   is focused, the service asks for a fresh report (`ping`) and pairs it
   with the browser window that reports focus. Verify reports how many tiles were found.

@@ -13,6 +13,8 @@
   (after a swap that reached the wrong tab, or browsing elsewhere), the
   record moves to that site, so the panel names it right and the swap card
   offers the site it left. Needs the browser extension.
+- **Fixed**: restarting the shell no longer loses which tab each tile is,
+  which left tiles with the same title unmatched until focused.
 
 ## 2.0.2 (2026-11-03)
 

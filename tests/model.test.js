@@ -611,6 +611,15 @@ assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 
 assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 } }, { tiles: { "0xa": { bridge: 0, window: 3, tab: 103 } } }, ["0xa"])),
   { "0xa": { bridge: 0, window: 3, tab: 103 } })
 assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: "x", tab: 1 } }, null, ["0xa"])), {})
+// A tile missing from a list still filling in keeps its pairing while its
+// tab is there; a pairing whose tab another tile now has is dropped.
+const keptBridges = [{ windows: [tab(1, "https://example.com/", "A"), tab(2, "https://example.org/", "B")] }]
+assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 }, "0xgone": { bridge: 0, window: 9, tab: 109 } },
+  { tiles: { "0xb": { bridge: 0, window: 2, tab: 102 } } }, ["0xb"], keptBridges)),
+  { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 } })
+assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 2, tab: 102 } },
+  { tiles: { "0xb": { bridge: 0, window: 2, tab: 102 } } }, ["0xa", "0xb"], keptBridges)),
+  { "0xb": { bridge: 0, window: 2, tab: 102 } })
 
 const navBridges = [{ windows: [tab(1, "https://kick.com/", "Kick")] }]
 assert.equal(model.tileTab({ tiles: { "0xa": { bridge: 0, window: 1, tab: 101 } } }, navBridges, "0xa").title, "Kick")
