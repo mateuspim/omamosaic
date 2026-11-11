@@ -8,7 +8,7 @@ import vm from "node:vm"
 const source = fs.readFileSync(new URL("../Model.js", import.meta.url), "utf8")
   .replace(/^\.pragma library\s*/m, "")
 const model = {}
-vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, privateStateSteps, privateFilesCommand, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
+vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, tabSiteDrift, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, privateStateSteps, privateFilesCommand, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
 
 // Values built inside the VM belong to another realm, so compare copies.
 const plain = value => JSON.parse(JSON.stringify(value))
@@ -552,6 +552,32 @@ const sameTabs = [{ windows: [tab(1, "https://youtube.com/", "YouTube"), tab(2, 
 assert.equal(model.matchTiles(sameSite, sameTabs).matched, 0)
 assert.deepEqual(plain(model.matchTiles(sameSite, sameTabs, { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 } }).tiles),
   { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 } })
+// A crossed earlier pairing is put right once a title tells the tiles
+// apart, while a title two tiles share keeps the earlier tab.
+const crossedTiles = [
+  { address: "0xa", url: "https://example.org/", title: "(17) Stream A - Site A", index: 1 },
+  { address: "0xb", url: "https://example.com", title: "(71) Site B", index: 2 },
+  { address: "0xc", url: "https://example.com", title: "(17) Stream A - Site A", index: 3 }
+]
+const crossedTabs = [{ windows: [tab(1, "https://example.com/stream-a", "(17) Stream A - Site A"), tab(2, "https://example.org/", "(71) Site B"), tab(3, "https://example.com/stream-a", "(17) Stream A - Site A")] }]
+assert.deepEqual(plain(model.matchTiles(crossedTiles, crossedTabs,
+  { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 }, "0xc": { bridge: 0, window: 3, tab: 103 } }).tiles),
+  { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 }, "0xc": { bridge: 0, window: 3, tab: 103 } })
+// A record follows its tab to another site, once the tab shows the
+// tile's own title; not mid-swap, not on the same site, not without one.
+const driftTiles = [
+  { address: "0xa", url: "https://example.org/", title: "(3) Stream A - Site A", index: 1 },
+  { address: "0xb", url: "https://example.com", title: "Loading", index: 2 },
+  { address: "0xc", url: "https://example.com", title: "Page C", index: 3 },
+  { address: "0xd", url: "", title: "Page D", index: 4 }
+]
+const driftTabs = [{ windows: [tab(1, "https://www.example.com/stream-a?x=1", "(3) Stream A - Site A"), tab(2, "https://example.net/", "Site N"),
+  tab(3, "https://example.com/other", "Page C"), tab(4, "https://example.net/", "Page D")] }]
+const driftCheck = { tiles: { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 },
+  "0xc": { bridge: 0, window: 3, tab: 103 }, "0xd": { bridge: 0, window: 4, tab: 104 } } }
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, driftCheck, driftTabs)), [{ address: "0xa", url: "https://www.example.com/" }])
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, driftCheck, driftTabs, ["0xa"])), [])
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, null, driftTabs)), [])
 // Focus tells look-alikes apart: only the focused tile, and only on its site.
 const focusTabs = [{ windows: [tab(1, "https://kick.com/", "Kick"), Object.assign(tab(2, "https://kick.com/", "Kick"), { focused: true })] }]
 const kicks = [{ address: "0xa", url: "https://kick.com", title: "Kick", index: 1 }, { address: "0xb", url: "https://kick.com", title: "Kick", index: 2 }]

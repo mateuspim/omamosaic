@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- **Fixed**: a tile paired with the wrong browser tab stays wrong no more.
+  The pairing was kept forever once made, even across shell restarts, so
+  a swap in place could change the *other* tile, and the two tiles then
+  showed each other's names, volume and stream status. A tile whose
+  window title no other tile has is now always paired with the tab that
+  shows that title.
+- **Fixed**: a tile's name follows the site its tab is really on. When the
+  extension sees a tile's tab on another site than OmaMosaic recorded
+  (after a swap that reached the wrong tab, or browsing elsewhere), the
+  record moves to that site, so the panel names it right and the swap card
+  offers the site it left. Needs the browser extension.
+
 ## 2.0.2 (2026-11-03)
 
 - **Security**: the state files are now private to you. `tiles.json` and

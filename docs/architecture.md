@@ -152,7 +152,15 @@ logins and memory; the user chose an extension instead.
   at most.
   The window keeps the Hyprland class from its first URL (Chromium names
   app windows after it), and nothing in OmaMosaic reads that class.
-- **Finding tiles.** A tile keeps the tab it was matched to while that
+- **Finding tiles.** A tile whose Hyprland title no other tile has is
+  the one tab showing that title, whatever it was paired with before:
+  a wrong pairing otherwise never healed, and a swap in place on one
+  tile navigated the tile beside it (seen 2026-11-11).
+  Once paired, a tab on another site than the tile's record, showing the
+  tile's own title, moves the record to that site's root
+  (`Model.tabSiteDrift`), so a stale record can't keep the panel naming
+  the site the tile left; swaps in place still loading are left alone.
+  Otherwise a tile keeps the tab it was matched to while that
   tab exists (a swap in place can leave two tiles on one site with one
   title); else it is the extension window whose one tab has the tile's
   Hyprland title (`Model.matchTiles`), else the one left on its site.

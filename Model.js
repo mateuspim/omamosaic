@@ -2115,7 +2115,8 @@ function siteOf(url) {
 }
 
 // Which extension window each tile is: `bridges` are the connected
-// extensions ({ windows }). A tile keeps the tab it had in `previous` (an
+// extensions ({ windows }). A tile whose title no other tile has takes
+// the one tab with that title. Else a tile keeps the tab it had in `previous` (an
 // earlier result's `tiles`, optional) while that tab is still there, since
 // a swap in place or the user browsing changes its title and site. Else it
 // is the one app window whose tab has the tile's title (Hyprland's title
@@ -2152,6 +2153,16 @@ function matchTiles(tiles, bridges, previous, focused, others) {
     taken.push(hits[0])
     found[tile.address] = { bridge: hits[0].bridge, window: hits[0].window, tab: hits[0].tab.id }
   }
+  // A title only this tile has, on exactly one tab, beats an earlier
+  // pairing: a pairing that went wrong once (look-alike tiles after a
+  // browser restart) otherwise stays wrong, and is saved across shell
+  // restarts, so a swap in place navigates the other window (seen
+  // 2026-11-11: two tiles on one workspace were paired with each other's
+  // tabs).
+  tiles.forEach(function(tile) {
+    if (tile.title === "" || tileTitles.indexOf(tile.title) !== tileTitles.lastIndexOf(tile.title)) return
+    claim(tile, function(candidate) { return candidate.tab.title === tile.title })
+  })
   var known = previous || {}
   tiles.forEach(function(tile) {
     var had = known[tile.address]
@@ -2372,6 +2383,27 @@ function tileTab(check, bridges, address) {
     for (var t = 0; t < tabs.length; t++) if (tabs[t].id === found.tab) return tabs[t]
   }
   return null
+}
+
+// Tiles whose tab is on another site than their record says, as
+// [{ address, url }] with the tab's site root, so the record can follow
+// it: a swap that went to the wrong tab, or browsing to another site,
+// otherwise leaves the panel naming the site the tile left, and offering
+// it as "now". Only when the tab shows the tile's own Hyprland title,
+// which proves the pairing and that the page has settled; never for a
+// tile without a record or one in `skip` (a swap still on its way).
+function tabSiteDrift(tiles, check, bridges, skip) {
+  var drift = []
+  tiles.forEach(function(tile) {
+    if (!tile.url || tile.title === "" || (skip || []).indexOf(tile.address) !== -1) return
+    var tab = tileTab(check, bridges, tile.address)
+    if (!tab || tab.title !== tile.title) return
+    var site = siteOf(tab.url)
+    var root = siteRoot(tab.url)
+    if (site === "" || root === "" || site === siteOf(tile.url)) return
+    drift.push({ address: tile.address, url: root })
+  })
+  return drift
 }
 
 // Whether a tab sent to `url` has arrived: it is on that site and shows a

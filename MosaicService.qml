@@ -165,6 +165,10 @@ Scope {
   // When the user last set each tile's volume (ms), so a report sent
   // before that doesn't undo it.
   property var volumeSetAt: ({})
+  // When each tile was last swapped in place (ms), so its record doesn't
+  // follow the page it is leaving; see followTabSites.
+  property var navigatedAt: ({})
+  readonly property int followWaitMs: 60000
   // The widget's setting: mute every tile but the one last focused.
   property bool audioFollowsFocus: false
   // The tile focused last, tracked whether or not the mode is on, so
@@ -782,6 +786,8 @@ Scope {
     var error = tileCommand(tile.address, "navigate", { url: url })
     if (error) return error
     swapVeil.show(tile, url)
+    navigatedAt[tile.address] = Date.now()
+    followTimer.restart()
     begin(label)
     pendingMessage = "Replaced tile " + tile.index + " with " + url + "."
     records = Model.replaceRecord(records, tile.address, { address: tile.address, session: tile.session, url: url })
@@ -1401,10 +1407,34 @@ Scope {
   function autoCheck() {
     if (verifying) return
     extensionCheck = bridges.length > 0 ? Model.matchTiles(Model.shapeList(list).tiles, bridges, knownTabs(), "", otherTitles) : null
+    followTabSites()
     applyAudioFocus()
     keepVolumes()
     applyPendingAudio()
     applyRecovery()
+  }
+
+  // Points a tile's record at the site its tab is really on
+  // (Model.tabSiteDrift), so its name and swap card stay right after a
+  // swap that reached the wrong tab or browsing to another site. Waits
+  // out actions and swaps in place still loading (a minute at most).
+  function followTabSites() {
+    if (busy || !extensionCheck || !extensionCheck.tiles) return
+    var now = Date.now()
+    var tiles = Model.listTiles(list)
+    var recent = tiles.map(function(tile) { return tile.address })
+      .filter(function(address) { return now - (root.navigatedAt[address] || 0) < root.followWaitMs })
+    var drift = Model.tabSiteDrift(tiles, extensionCheck, bridges, recent)
+    if (drift.length === 0) return
+    var next = records
+    drift.forEach(function(moved) {
+      var tile = tiles.filter(function(t) { return t.address === moved.address })[0]
+      console.log("OmaMosaic: tile " + tile.index + " is on " + moved.url + ", not " + tile.url + "; following it")
+      next = Model.replaceRecord(next, moved.address, { address: moved.address, session: tile.session, url: moved.url })
+    })
+    records = next
+    rebuild()
+    store.setText(Model.serializeStore(records))
   }
 
   // Forgets volumes of tiles that are gone, follows the levels an up to
@@ -1789,6 +1819,14 @@ Scope {
     interval: 5000
     repeat: true
     onTriggered: root.applyRecovery()
+  }
+
+  // Checks once more when a swap's wait is over, since a page that stays
+  // the same sends the extension no report to check on.
+  Timer {
+    id: followTimer
+    interval: root.followWaitMs + 1000
+    onTriggered: root.followTabSites()
   }
 
   Timer {
