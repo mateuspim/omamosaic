@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.1.0 (2026-11-11)
 
 - **Fixed**: a tile paired with the wrong browser tab stays wrong no more.
   The pairing was kept forever once made, even across shell restarts, so
@@ -29,6 +29,9 @@
   drop.
 - Extension 0.7.0 (`background-14.js`): reload it once (B on the
   Extension tab, or its Reload button on the extensions page).
+- **Fixed**: the layout editor and the swap card read theme colours that
+  came back undefined outside the running shell since the Omarchy shell
+  update of 2026-11-05; the offscreen preview works again.
 - **Fixed**: restarting the shell no longer loses which tab each tile is,
   which left tiles with the same title unmatched until focused.
 
