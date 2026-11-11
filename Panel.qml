@@ -133,8 +133,8 @@ Panel {
     return manifest ? manifest.name + " " + manifest.version : ""
   }
 
-  readonly property color foreground: bar ? bar.foreground : Color.foreground
-  readonly property color urgent: bar ? bar.urgent : Color.urgent
+  readonly property color foreground: bar ? bar.foreground : Commons.Color.foreground
+  readonly property color urgent: bar ? bar.urgent : Commons.Color.urgent
   readonly property color dim: Qt.darker(foreground, 1.55)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   // The browser setting: a Chromium-family command used instead of the
@@ -1716,7 +1716,7 @@ Panel {
     width: parent ? parent.width : 0
     height: noticeText.implicitHeight + Style.spacing.md * 2
     radius: Style.cornerRadius
-    color: Style.hoverFillFor(notice.warning ? root.urgent : root.foreground, Color.accent)
+    color: Style.hoverFillFor(notice.warning ? root.urgent : root.foreground, Commons.Color.accent)
     Text {
       id: noticeText
       anchors.fill: parent
@@ -2048,9 +2048,9 @@ Panel {
         width: Math.max(0, zone.w * preview.width - preview.gap)
         height: Math.max(0, zone.h * preview.height - preview.gap)
         radius: preview.compact ? 1 : Style.cornerRadius
-        color: zone.main ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, preview.compact ? 0.55 : 0.28) : Style.hoverFillFor(root.foreground, Color.accent)
+        color: zone.main ? Qt.rgba(Commons.Color.accent.r, Commons.Color.accent.g, Commons.Color.accent.b, preview.compact ? 0.55 : 0.28) : Style.hoverFillFor(root.foreground, Commons.Color.accent)
         border.width: index === preview.selected ? 2 : preview.compact ? 0 : 1
-        border.color: index === preview.selected ? Color.accent : Qt.darker(root.foreground, 2.2)
+        border.color: index === preview.selected ? Commons.Color.accent : Qt.darker(root.foreground, 2.2)
 
         // Hover counts over the zone's buttons too.
         HoverHandler {
@@ -2136,7 +2136,7 @@ Panel {
           width: handle.line.vertical ? Style.space(3) : parent.width - Style.space(8)
           height: handle.line.vertical ? parent.height - Style.space(8) : Style.space(3)
           radius: Style.space(2)
-          color: Color.accent
+          color: Commons.Color.accent
           visible: dragArea.containsMouse || dragArea.pressed
         }
 
@@ -2236,7 +2236,7 @@ Panel {
 
     Rectangle {
       anchors.fill: parent
-      color: Color.menu.scrim
+      color: Commons.Color.menu.scrim
     }
 
     BorderSurface {
@@ -2245,8 +2245,8 @@ Panel {
       anchors.margins: Style.space(40)
       radius: Style.cornerRadius
       // Opaque: the windows behind would show through a translucent theme.
-      color: Qt.rgba(Color.menu.background.r, Color.menu.background.g, Color.menu.background.b, 1)
-      borderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(2)))
+      color: Qt.rgba(Commons.Color.menu.background.r, Commons.Color.menu.background.g, Commons.Color.menu.background.b, 1)
+      borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, Math.max(1, Style.space(2)))
       padding: Style.spacing.panelPadding
 
       Item {
@@ -2375,8 +2375,8 @@ Panel {
     width: size
     height: size
     radius: Style.cornerRadius
-    color: toolMouse.containsMouse ? Style.hoverFillFor(kind === "remove" ? root.urgent : root.foreground, Color.accent)
-      : Color.popups.background
+    color: toolMouse.containsMouse ? Style.hoverFillFor(kind === "remove" ? root.urgent : root.foreground, Commons.Color.accent)
+      : Commons.Color.popups.background
     border.width: 1
     border.color: Qt.darker(root.foreground, 1.8)
 
@@ -2400,7 +2400,7 @@ Panel {
       visible: tool.kind !== "beside" && tool.kind !== "below"
       anchors.centerIn: parent
       text: tool.kind === "main" ? (tool.on ? "★" : "☆") : tool.kind === "remove" ? "×" : tool.kind === "smaller" ? "−" : "+"
-      color: tool.kind === "main" && tool.on ? Color.accent : root.foreground
+      color: tool.kind === "main" && tool.on ? Commons.Color.accent : root.foreground
       font.family: root.fontFamily
       font.pixelSize: Math.max(Style.font.body, tool.size * 0.55)
     }
@@ -2673,14 +2673,14 @@ Panel {
     implicitWidth: chipText.implicitWidth + Style.space(14)
     implicitHeight: chipText.implicitHeight + Style.space(6)
     radius: height / 2
-    color: good ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.16)
+    color: good ? Qt.rgba(Commons.Color.accent.r, Commons.Color.accent.g, Commons.Color.accent.b, 0.16)
       : Qt.rgba(root.urgent.r, root.urgent.g, root.urgent.b, 0.16)
     Text {
       id: chipText
       anchors.centerIn: parent
       textFormat: Text.PlainText
       text: parent.text
-      color: parent.good ? Color.accent : root.urgent
+      color: parent.good ? Commons.Color.accent : root.urgent
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
     }
@@ -2695,7 +2695,7 @@ Panel {
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
     radius: Style.cornerRadius
-    color: logoImage.status === Image.Ready ? "transparent" : Style.selectedFillFor(root.foreground, Color.accent)
+    color: logoImage.status === Image.Ready ? "transparent" : Style.selectedFillFor(root.foreground, Commons.Color.accent)
 
     Image {
       id: logoImage
@@ -2859,7 +2859,7 @@ Panel {
         width: Math.max(1, Math.round(cell.w * thumb.width) - 1)
         height: Math.max(1, Math.round(cell.h * thumb.height) - 1)
         radius: 1
-        color: index === 0 ? Color.accent : root.foreground
+        color: index === 0 ? Commons.Color.accent : root.foreground
         opacity: index === 0 ? 0.9 : 0.45
       }
     }
