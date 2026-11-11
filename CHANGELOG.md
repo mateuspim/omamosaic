@@ -13,6 +13,22 @@
   (after a swap that reached the wrong tab, or browsing elsewhere), the
   record moves to that site, so the panel names it right and the swap card
   offers the site it left. Needs the browser extension.
+- **New**: a tile whose page crashed (Chromium's "Aw, Snap!") is reloaded
+  within about 10 seconds, on any site, with the same limits as stream
+  recovery, while **Recover streams** is on; its row says **page
+  crashed** meanwhile. A crashed stream used to read as still playing.
+- **Changed**: YouTube streams recover too: `youtube.com` joins the
+  default **Stream recovery sites** (`twitch.tv, kick.com, youtube.com`).
+  A video that reaches its end is left alone unless it is live, and hover
+  previews on a site's home page are never taken for a stream.
+- **Fixed**: a stream paused right after a click in its tile was taken for
+  a pause by hand and never reloaded, even when the player had given up
+  and kept no picture. Such a pause now counts as a stop after 20 seconds.
+- **Fixed**: a playing video whose player is hidden no longer reads as
+  gone, and a site's player error with no video on the page counts as a
+  drop.
+- Extension 0.7.0 (`background-14.js`): reload it once (B on the
+  Extension tab, or its Reload button on the extensions page).
 - **Fixed**: restarting the shell no longer loses which tab each tile is,
   which left tiles with the same title unmatched until focused.
 

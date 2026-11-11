@@ -209,6 +209,8 @@ Scope {
   // (Model.recoveryLog), for the panel and `mosaic streams`.
   property var recovery: ({})
   property var recoveryLog: []
+  // Model.planCrashReloads's state by address.
+  property var crashReloads: ({})
   // Tiles reloaded while their page was fullscreen, by address, with
   // when; see Model.planRefullscreen.
   property var refullscreen: ({})
@@ -256,10 +258,35 @@ Scope {
       recoveryLog = Model.recoveryLog(recoveryLog, result.events, now, labels)
     }
     if (JSON.stringify(result.recovery) !== JSON.stringify(recovery)) recovery = result.recovery
-    recoveryTimer.running = Object.keys(again.pending).length > 0 || Model.recoveryWaiting(result.recovery) || recoveringSites !== "" && Object.keys(audio).some(function(address) {
+    var crashes = reloadCrashes(audio, tiles, now)
+    recoveryTimer.running = recoverStreams && Model.crashWaiting(audio, crashes) || Object.keys(again.pending).length > 0 || Model.recoveryWaiting(result.recovery) || recoveringSites !== "" && Object.keys(audio).some(function(address) {
       var stream = audio[address].stream
       return stream !== null && stream.state === "dropped" && !(result.recovery[address] && result.recovery[address].stalled)
     })
+  }
+
+  // Reloads tiles whose page crashed (Model.planCrashReloads), on every
+  // site while Recover streams is on, and logs it with the stream
+  // recoveries. Returns the new state.
+  function reloadCrashes(audio, tiles, now) {
+    var live = recoverStreams ? tiles.map(function(tile) { return tile.address }) : []
+    var result = Model.planCrashReloads(audio, crashReloads, live, now)
+    result.reload.forEach(function(address) {
+      var entry = audio[address]
+      if (Model.bridgeHas(root.bridges[entry.bridge], "reload")) root.sendBridge(entry.bridge, { type: "reload", tab: entry.tab })
+    })
+    if (result.events.length > 0) {
+      var labels = {}
+      tiles.forEach(function(tile) {
+        labels[tile.address] = Model.tileLabel(audio[tile.address] ? { url: audio[tile.address].url, index: tile.index } : tile)
+      })
+      result.events.forEach(function(event) {
+        console.log("OmaMosaic: crashed page " + event.action + ": " + (labels[event.address] || event.address))
+      })
+      recoveryLog = Model.recoveryLog(recoveryLog, result.events, now, labels)
+    }
+    if (JSON.stringify(result.crashes) !== JSON.stringify(crashReloads)) crashReloads = result.crashes
+    return result.crashes
   }
 
   // Whether a tile's workspace is the one its monitor shows.

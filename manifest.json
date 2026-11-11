@@ -24,7 +24,7 @@
       "audioFollowsFocus": false,
       "recoverStreams": true,
       "addOnFocusedWorkspace": false,
-      "recoverSites": "twitch.tv, kick.com"
+      "recoverSites": "twitch.tv, kick.com, youtube.com"
     },
     "schema": [
       {
@@ -52,7 +52,7 @@
         "key": "recoverSites",
         "type": "string",
         "label": "Stream recovery sites",
-        "defaultValue": "twitch.tv, kick.com",
+        "defaultValue": "twitch.tv, kick.com, youtube.com",
         "description": "Sites whose tiles are reloaded when their stream drops (the video freezes or fails), separated by commas. Their subdomains count too. The panel's Recover dropped streams switch turns it on or off."
       }
     ]

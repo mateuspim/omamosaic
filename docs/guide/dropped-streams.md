@@ -11,7 +11,11 @@ that gives up behind its spinner counts too: a video that was playing
 and then ended or was paused, not by you, for 20 seconds, and a video
 that never starts for 20 seconds, as after a reload that hangs. Pausing
 by hand (a click or a key in the tile, or `mosaic` media commands) and
-an ad playing in another video don't count. Media keys and playerctl
+an ad playing in another video don't count, unless the paused video has
+lost its picture (the player gave up right after a click). A video that
+simply reaches its end isn't a drop; only a live stream that ends is.
+Small videos, such as hover previews on a site's home page, are never
+watched: a video counts once it has filled a quarter of the tile. Media keys and playerctl
 give the page no sign of a hand pause, so a tile paused that way is
 reloaded after 20 seconds, at most three times.
 
@@ -26,10 +30,15 @@ before trying again. A reload that doesn't bring the stream back within
 counts as a failed try. After three tries in ten minutes it stops and the
 tile's row says **stream stalled**; P reloads it by hand. A tile's row
 also says when a stream was recovered. It only acts on the sites in the
-widget's **Stream recovery sites** setting, `twitch.tv, kick.com` by
-default (YouTube doesn't need it); a tile on another site shows no
+widget's **Stream recovery sites** setting, `twitch.tv, kick.com,
+youtube.com` by default; a tile on another site shows no
 stream warning on its row. `omamosaic streams` shows each tile's
 stream and the recent recoveries with the reason, such as
 `MEDIA_ERR_DECODE`; they are logged to the shell's journal too.
+
+A tile whose page crashed (Chromium's "Aw, Snap!") is reloaded the same
+way, within about 10 seconds, on any site, not only the recovery sites;
+its row says **page crashed** until it is back. Turning off **Recover
+dropped streams** stops this too.
 
 Recovery needs the [browser extension](browser-extension.md); see also [Audio](audio.md) for per-tile controls.

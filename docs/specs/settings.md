@@ -17,7 +17,7 @@ so the service follows them even for IPC calls.
 | `browser` | string | `""` | A Chromium-family command to open tiles with (`~/` is expanded). Empty: the default browser, which must be Chromium-based. |
 | `swapKey` | string | `SUPER + SHIFT + S` | The key that opens the swap card over the focused tile, written like `SUPER + SHIFT + S` (modifier names and one key name, or `code:N`). Empty binds none. A key another bind uses is refused with a notification. |
 | `hiddenWebapps` | string | `""` | Web app names or ids, comma-separated, matched without case, that get no button. Right-clicking a button adds one; the Hidden tab removes them. |
-| `recoverSites` | string | `twitch.tv, kick.com` | Sites, comma-separated, whose dropped streams are reloaded; subdomains count. |
+| `recoverSites` | string | `twitch.tv, kick.com, youtube.com` | Sites, comma-separated, whose dropped streams are reloaded; subdomains count. |
 
 ## Set from the panel only
 

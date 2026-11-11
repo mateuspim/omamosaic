@@ -2090,7 +2090,7 @@ function bridgeWindows(list) {
       var volume = Number(tab.volume)
       tabs.push({ id: tab.id, url: String(tab.url || ""), title: String(tab.title || ""), favIconUrl: String(tab.favIconUrl || ""),
         audible: tab.audible === true, muted: tab.muted === true, volume: tab.volume === undefined || !(volume >= 0 && volume <= 1) ? 1 : volume,
-        stream: parseStream(tab.stream) })
+        stream: parseStream(tab.stream), crashed: tab.crashed === true })
     }
     windows.push({ id: window.id, type: String(window.type || ""), focused: window.focused === true, tabs: tabs })
   }
@@ -2441,7 +2441,7 @@ function tileAudio(check, bridges) {
     bridge.windows.forEach(function(window) {
       window.tabs.forEach(function(tab) {
         if (tab.id === found.tab) audio[address] = { bridge: found.bridge, tab: tab.id, audible: tab.audible, muted: tab.muted, volume: tab.volume,
-          url: tab.url, stream: tab.stream || null }
+          url: tab.url, stream: tab.stream || null, crashed: tab.crashed === true }
       })
     })
   })
@@ -2474,7 +2474,7 @@ function audioIcon(entry) {
 // that went offline can't reload forever: at most RECOVERY_TRIES within
 // RECOVERY_WINDOW_MS, waiting RECOVERY_WAITS_MS[n] after the nth, then the
 // tile is "stalled" until its stream plays again or the user reloads it.
-var RECOVERY_SITES = "twitch.tv, kick.com"
+var RECOVERY_SITES = "twitch.tv, kick.com, youtube.com"
 var RECOVERY_TRIES = 3
 var RECOVERY_WINDOW_MS = 600000
 var RECOVERY_WAITS_MS = [0, 30000, 120000]
@@ -2548,6 +2548,58 @@ function planRecovery(audio, recovery, sitesText, live, now) {
     next[address] = record
   })
   return { recovery: next, reload: reload, events: events }
+}
+
+// What to do about crashed pages ("Aw, Snap!", which the extension's
+// "crash" feature reports): reload them, on every site, backing off like
+// planRecovery so a page that keeps crashing can't reload forever.
+// `crashes` is the last result's state by address ({ tab, tries: [ms],
+// waiting, stalled }). Returns { crashes, reload: [address], events },
+// with events as planRecovery's, reason "crashed".
+function planCrashReloads(audio, crashes, live, now) {
+  var next = {}
+  var reload = []
+  var events = []
+  live.forEach(function(address) {
+    var entry = audio[address]
+    var old = crashes[address]
+    if (!entry) {
+      if (old) next[address] = old
+      return
+    }
+    var record = old && old.tab === entry.tab
+      ? { tab: old.tab, tries: old.tries.filter(function(at) { return now - at < RECOVERY_WINDOW_MS }), waiting: old.waiting, stalled: old.stalled }
+      : { tab: entry.tab, tries: [], waiting: 0, stalled: false }
+    var event = function(action) {
+      events.push({ address: address, action: action, reason: "crashed", detail: "", url: entry.url || "" })
+    }
+    if (!entry.crashed) {
+      if (record.waiting > 0) event("recovered")
+      record.waiting = 0
+      record.stalled = false
+    } else if (!record.stalled) {
+      var last = record.tries.length > 0 ? record.tries[record.tries.length - 1] : -Infinity
+      if (record.tries.length >= RECOVERY_TRIES) {
+        record.stalled = true
+        record.waiting = 0
+        event("stalled")
+      } else if (now - last >= RECOVERY_WAITS_MS[record.tries.length]) {
+        record.tries.push(now)
+        record.waiting = now
+        reload.push(address)
+        event("reloaded")
+      }
+    }
+    if (record.tries.length > 0 || record.stalled) next[address] = record
+  })
+  return { crashes: next, reload: reload, events: events }
+}
+
+// Whether a crashed tile waits for its next reload.
+function crashWaiting(audio, crashes) {
+  return Object.keys(audio).some(function(address) {
+    return audio[address].crashed && !(crashes[address] && crashes[address].stalled)
+  })
 }
 
 // A recovery reload whose page is still idle RECOVERY_RETURN_MS later,
@@ -2639,6 +2691,8 @@ function fullscreenKeyLua(address) {
 // it. A reload shows for a minute at most, since a channel that went
 // offline never plays again.
 function streamStatus(entry, record, enabled, now) {
+  // On every site: a crashed page is reloaded wherever it is.
+  if (entry && entry.crashed) return { text: "page crashed", warn: true }
   if (!enabled) return { text: "", warn: false }
   var stream = entry ? entry.stream : null
   if (record && record.stalled) return { text: "stream stalled; P reloads it", warn: true }
@@ -2669,7 +2723,7 @@ function streamsText(list, audio, recovery, log, sitesText) {
     var entry = audio[tile.address]
     var stream = entry ? entry.stream : null
     var record = recovery[tile.address]
-    var state = !entry ? "not found by the extension" : !stream ? "no video report" : stream.state
+    var state = !entry ? "not found by the extension" : entry.crashed ? "page crashed" : !stream ? "no video report" : stream.state
       + (stream.reason ? " (" + stream.reason + (stream.detail ? ": " + stream.detail : "") + ")" : "")
     var extra = record && record.stalled ? ", stalled" : record && record.recovered > 0 ? ", recovered " + record.recovered + "×" : ""
     lines.push(tile.index + "  " + tileLabel(tile) + "  " + state + extra

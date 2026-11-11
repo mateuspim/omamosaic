@@ -7,7 +7,8 @@
 //   to the service:   hello { extension, script, features }
 //                     windows { id?, windows }: the app windows, their tabs'
 //                       url, title, favIcon, audible, muted, volume, and
-//                       stream (see pageStream), once the page has one
+//                       stream (see pageStream), once the page has one,
+//                       and crashed (see checkCrashes)
 //                     done { id, error }: how a command with an `id` went
 //   from the service: ping { id }, answered by windows { id, windows }
 //                     mute { tab, muted }
@@ -37,17 +38,19 @@
 // reporting the new manifest's version; a new file name per change forces
 // the new code (Omarchy's Copy URL extension does the same). Rename the file,
 // update manifest.json, and change this together.
-const SCRIPT = "background-11.js";
+const SCRIPT = "background-14.js";
 // "follow": reported volumes follow changes made with the page's own
 // controls, and survive the worker stopping, so the service mirrors them
 // instead of setting its own again.
 // "stream": tabs report how their video plays, so the service can reload
 // a stream that dropped.
 // "fullscreen": stream reports say whether the page is fullscreen.
+// "crash": tabs report crashed ("Aw, Snap!") pages, so the service can
+// reload them.
 // "extensions": the extensions command. A browser won't open its own pages
 // from the command line (Chromium opens a new tab instead), but an
 // extension may.
-const FEATURES = ["mute", "volume", "follow", "navigate", "reload", "media", "favicon", "stream", "extensions", "fullscreen"];
+const FEATURES = ["mute", "volume", "follow", "navigate", "reload", "media", "favicon", "stream", "extensions", "fullscreen", "crash"];
 const HOST = "pym.omamosaic";
 const RETRY_FIRST_MS = 1000;
 const RETRY_LAST_MS = 60000;
@@ -68,6 +71,23 @@ const volumesReady = chrome.storage.session.get("volumes").then(function(stored)
 // Each tab's stream ({ state, reason, detail, since }), as its page last
 // reported it; forgotten when the tab loads a new page.
 const streams = new Map();
+
+// Crashed pages. Chromium gives an extension no sign of a crashed page:
+// the tab keeps its title and status and no event fires (checked with
+// Brave Origin 157, 2026-11-11). Only a script sent to it fails, with
+// "Frame with ID 0 was removed" or "Cannot access contents of the page",
+// unlike an error page's "showing error page". A page whose site blocks
+// the extension fails that way from the start, so only a page that took
+// a script since it loaded counts, or one whose tab says "unloaded",
+// which a crashed tab soon does while a live page says "complete" (a
+// page already crashed when the worker started took no script; seen
+// 2026-11-11), and only after CRASH_FAILS checks in a row. Each tab's
+// state: { scripted, fails }, reset when it loads.
+const CRASH_CHECK_MS = 5000;
+const CRASH_FAILS = 2;
+const CRASH_ERROR = /frame with id 0 was removed|cannot access contents of the page/i;
+const pages = new Map();
+const crashed = new Set();
 
 function setVolume(tabId, level) {
   if (level >= 1) volumes.delete(tabId);
@@ -232,9 +252,10 @@ function pageVolume(level) {
 // 2026-10-15), so a video that played and then ended or was paused, not
 // by hand, counts too ("stopped"), as does one that never starts
 // ("stuck"), paused or not, as after a reload that hangs. A pause by hand
-// is one made with a click or a key in the page, or by the media command;
-// media keys and playerctl give the page no sign, so they count as the
-// player's. A short stall is a normal rebuffer,
+// is one made with a click or a key in the page, or by the media command,
+// unless the video is left with no picture; media keys and playerctl give
+// the page no sign, so they count as the player's. A video that reaches
+// its end isn't a drop unless it is live (no fixed length). A short stall is a normal rebuffer,
 // so a problem only counts once it lasts, and none counts while another
 // video on the page plays, such as an ad. Sites such as Twitch change
 // pages without loading one, so a video counts only on the page (path)
@@ -251,13 +272,14 @@ function pageStream(resend) {
   const STOP_MS = 20000;
   const state = globalThis.__mosaicStream || (globalThis.__mosaicStream = {
     timer: 0, video: null, time: -1, frames: -1, played: false, page: "", problem: "", detail: "", since: 0, stream: null, sent: "",
-    times: new WeakMap(), held: false, mediaPause: 0
+    times: new WeakMap(), held: false, mediaPause: 0, big: new WeakSet()
   });
   if (!state.times) {
     state.times = new WeakMap();
     state.held = false;
     state.mediaPause = 0;
   }
+  if (!state.big) state.big = new WeakSet();
   if (!state.listening) {
     state.listening = true;
     // Media events don't bubble, so listen while they go down.
@@ -283,18 +305,29 @@ function pageStream(resend) {
     } catch (error) { /* The extension was updated or removed. */ }
   }
   // The largest video with something loaded: players keep spare ones.
+  // Only a video that has filled at least BIG_SHARE of the tile counts, so
+  // hover previews on a site's home page (YouTube's, Twitch's directory)
+  // are no stream; one that shrinks later (a mini player) still is. Else
+  // one playing with no size, as when a player is hidden while its site
+  // is browsed (YouTube Music's, likely), which would otherwise read as
+  // "gone".
   function mainVideo(videos) {
+    const BIG_SHARE = 0.25;
+    const viewport = innerWidth * innerHeight;
     let best = null;
     let area = 0;
+    let hidden = null;
     videos.forEach(function(video) {
       if (!video.currentSrc && !video.srcObject) return;
       const box = video.getBoundingClientRect();
+      if (viewport > 0 && box.width * box.height >= viewport * BIG_SHARE) state.big.add(video);
+      if (!state.big.has(video) && box.width * box.height > 0) return;
       if (box.width * box.height > area) {
         best = video;
         area = box.width * box.height;
-      }
+      } else if (!hidden && !video.paused) hidden = video;
     });
-    return best;
+    return best || hidden;
   }
   function frames(video) {
     try {
@@ -353,6 +386,9 @@ function pageStream(resend) {
         detail = site;
       } else if (other) {
         quiet = "other";
+      } else if (video.ended && Number.isFinite(video.duration)) {
+        // A video that reached its end, not a live stream that stopped.
+        quiet = "ended";
       } else if (!fresh && !video.paused && !video.ended && !moved) {
         problem = state.played ? "frozen" : "stuck";
         detail = (state.played ? "time stopped at " : "never started, at ") + time.toFixed(1) + " s (" + media + ")";
@@ -363,9 +399,13 @@ function pageStream(resend) {
       } else if (state.played && video.ended) {
         problem = "stopped";
         detail = "the video ended at " + time.toFixed(1) + " s (" + media + ")";
-      } else if (video.paused && !state.held) {
+      } else if (video.paused && (!state.held || video.readyState < 2)) {
+        // A pause by hand keeps its picture; a player that gave up after
+        // a click in the tile was left with none (readyState 1, seen
+        // 2026-11-11), so that counts too.
         problem = state.played ? "stopped" : "stuck";
-        detail = (state.played ? "paused, not by hand, at " : "never started, paused at ") + time.toFixed(1) + " s (" + media + ")";
+        detail = (state.held ? "paused with no picture, at " : state.played ? "paused, not by hand, at " : "never started, paused at ")
+          + time.toFixed(1) + " s (" + media + ")";
       } else if (video.paused) {
         quiet = "paused";
         detail = media;
@@ -373,6 +413,11 @@ function pageStream(resend) {
       state.video = video;
       state.time = time;
       state.frames = count;
+    } else if (siteError()) {
+      // Twitch's "Error #2000" screen has no video at all (seen
+      // 2026-10-26).
+      problem = "error";
+      detail = siteError();
     } else if (state.played) {
       problem = "gone";
       detail = "the video went away";
@@ -434,7 +479,8 @@ async function reportWindows(id) {
             audible: !!tab.audible,
             muted: !!(tab.mutedInfo && tab.mutedInfo.muted),
             volume: volumes.has(tab.id) ? volumes.get(tab.id) : 1,
-            stream: streams.get(tab.id) || null
+            stream: streams.get(tab.id) || null,
+            crashed: crashed.has(tab.id)
           };
         })
       };
@@ -445,6 +491,44 @@ async function reportWindows(id) {
   const message = { type: "windows", windows: windows };
   if (id !== undefined) message.id = id;
   send(message);
+}
+
+// Sends each tile's page a script that does nothing, to find crashed ones
+// (see `pages`). A crashed page's last stream report would otherwise stand,
+// still "playing", so it is dropped.
+async function checkCrashes() {
+  if (!port) return;
+  let all = [];
+  try {
+    all = await chrome.windows.getAll({ populate: true, windowTypes: ["app", "popup"] });
+  } catch (error) {
+    return;
+  }
+  const tabs = [];
+  all.forEach(function(window) { (window.tabs || []).forEach(function(tab) { tabs.push(tab); }); });
+  let changed = false;
+  await Promise.all(tabs.map(async function(tab) {
+    if (!/^https?:/i.test(tab.url || "") || tab.status === "loading" || tab.discarded) return;
+    const page = pages.get(tab.id) || { scripted: false, fails: 0 };
+    pages.set(tab.id, page);
+    try {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id, frameIds: [0] }, func: function() { return true; } });
+      page.scripted = true;
+      page.fails = 0;
+    } catch (failure) {
+      const message = String(failure && failure.message ? failure.message : failure);
+      const known = page.scripted || tab.status === "unloaded";
+      page.fails = known && CRASH_ERROR.test(message) ? page.fails + 1 : 0;
+    }
+    const now = page.fails >= CRASH_FAILS;
+    if (now === crashed.has(tab.id)) return;
+    if (now) {
+      crashed.add(tab.id);
+      streams.delete(tab.id);
+    } else crashed.delete(tab.id);
+    changed = true;
+  }));
+  if (changed) windowsChanged();
 }
 
 // Titles, audio, and windows change in bursts; report once they settle.
@@ -500,13 +584,20 @@ async function watchPage(tabId) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, change) {
-  // A new page starts without a stream; its watcher reports one.
-  if (change.status === "loading" && streams.delete(tabId)) windowsChanged();
+  // A new page starts without a stream; its watcher reports one. It
+  // hasn't crashed either.
+  if (change.status === "loading") {
+    pages.delete(tabId);
+    const was = crashed.delete(tabId);
+    if (streams.delete(tabId) || was) windowsChanged();
+  }
   if (change.status === "complete") watchPage(tabId);
   if ("title" in change || "url" in change || "audible" in change || "mutedInfo" in change || "favIconUrl" in change) windowsChanged();
 });
 chrome.tabs.onRemoved.addListener(function(tabId) {
   streams.delete(tabId);
+  pages.delete(tabId);
+  crashed.delete(tabId);
   if (volumes.has(tabId)) setVolume(tabId, 1);
   windowsChanged();
 });
@@ -521,6 +612,7 @@ chrome.alarms.onAlarm.addListener(function(alarm) {
 });
 
 connect();
+setInterval(checkCrashes, CRASH_CHECK_MS);
 // Pages already open when the worker starts, as after an update.
 chrome.windows.getAll({ populate: true, windowTypes: ["app", "popup"] }).then(function(all) {
   all.forEach(function(window) { (window.tabs || []).forEach(function(tab) { watchPage(tab.id); }); });

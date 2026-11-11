@@ -102,7 +102,9 @@ what OmaMosaic does with that access:
   `ibcnbknhphdnlpfglnhelicnpnnmepbo`) asks for `tabs`, `scripting`,
   `nativeMessaging`, `storage`, `alarms` and `<all_urls>`. It reports app and
   popup windows only, never normal browsing windows, and only acts on tabs in
-  those windows; `navigate` accepts only http and https addresses.
+  those windows; `navigate` accepts only http and https addresses. To find
+  crashed pages it runs a script that does nothing in each of those tabs
+  every 5 seconds; it reads nothing from the page.
 - **Local bridge**: the native host caps frames at 1 MiB both ways, rejects
   an oversized header before reading its body, and its manifest allows only
   the extension's ID. The socket lives in the owner-only
