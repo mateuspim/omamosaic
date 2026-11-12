@@ -34,7 +34,9 @@ carry over:
 - `address`: the Hyprland window address, `0x` plus hex.
 - `session`: `^[a-z0-9_-]{1,32}$`.
 - `url`: the address the tile was opened with, or last swapped to in place,
-  stored as given (query string included).
+  stored as given (query string included). When the extension finds the
+  tile's tab on another site (its title matching the window's), it becomes
+  that site's root, such as `https://example.com/`.
 
 Records are in the order the tiles were added. The file is pruned against
 live windows on `add`, and ignored where it disagrees with the Hyprland

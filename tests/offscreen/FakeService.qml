@@ -76,7 +76,7 @@ QtObject {
   readonly property bool extensionOutdated: false
 
   // One connected browser whose app windows are the four tiles.
-  property var bridges: [{ browser: "/usr/lib/chromium/chromium", extension: "0.6.0", script: "background-11.js",
+  property var bridges: [{ browser: "/usr/lib/chromium/chromium", extension: "0.7.0", script: "background-14.js",
     features: ["mute", "volume", "follow", "navigate", "reload", "media", "favicon", "stream", "extensions", "fullscreen"],
     windows: [
       { id: 11, type: "app", focused: false, tabs: [{ id: 101, url: "https://www.twitch.tv", title: "Speedrun relay - Twitch", favIconUrl: "", audible: true, muted: false, volume: 1,

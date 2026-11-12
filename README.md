@@ -30,8 +30,9 @@ type any address.
   Omarchy's window bindings keep working.
 - **Per-tile audio**: mute, volume, and "only the focused tile plays",
   through a small browser extension.
-- **Dropped streams come back**: a frozen or failed Twitch or Kick stream
-  is reloaded, and goes fullscreen again if it was.
+- **Dropped streams come back**: a frozen, failed or stopped Twitch, Kick
+  or YouTube stream is reloaded, and goes fullscreen again if it was; a
+  tile whose page crashed is reloaded on any site.
 - **Saved sessions** that reopen where they were, by key or at login.
 - **Save a tile as a web app**, with the site's icon.
 - **Scriptable**: `omarchy-shell pym.omamosaic …` and the `omamosaic`

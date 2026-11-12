@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
@@ -45,7 +46,7 @@ Scope {
     var tab = tile ? Model.tileTab(service.extensionCheck, service.bridges, tile.address) : null
     return tab && /^(https?|data):/.test(tab.favIconUrl || "") ? tab.favIconUrl : ""
   }
-  readonly property color dim: Util.alpha(Color.menu.text, 0.55)
+  readonly property color dim: Util.alpha(Commons.Color.menu.text, 0.55)
 
   function iconSource(icon) {
     if (!icon) return ""
@@ -157,7 +158,7 @@ Scope {
 
     Rectangle {
       anchors.fill: parent
-      color: Color.menu.scrim
+      color: Commons.Color.menu.scrim
       radius: Style.cornerRadius
     }
 
@@ -173,8 +174,8 @@ Scope {
       width: Math.max(Style.space(200), Math.min(Style.space(460), parent.width - Style.gapsOut * 2))
       height: Math.min(parent.height - Style.gapsOut * 2, content.implicitHeight + card.contentTopInset + card.contentBottomInset)
       radius: Style.cornerRadius
-      color: Color.menu.background
-      borderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(2)))
+      color: Commons.Color.menu.background
+      borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, Math.max(1, Style.space(2)))
       padding: Style.spacing.panelPadding
       clip: true
 
@@ -220,9 +221,9 @@ Scope {
               Layout.preferredWidth: Style.space(40)
               Layout.preferredHeight: Style.space(40)
               radius: Style.cornerRadius
-              color: Util.alpha(Color.menu.text, 0.06)
+              color: Util.alpha(Commons.Color.menu.text, 0.06)
               border.width: 1
-              border.color: Util.alpha(Color.menu.text, 0.12)
+              border.color: Util.alpha(Commons.Color.menu.text, 0.12)
               Image {
                 id: currentIcon
                 anchors.centerIn: parent
@@ -252,7 +253,7 @@ Scope {
                 Layout.fillWidth: true
                 textFormat: Text.PlainText
                 text: root.tileLabel
-                color: Color.menu.text
+                color: Commons.Color.menu.text
                 font.family: Style.font.menuFamily
                 font.pixelSize: Style.font.title
                 font.bold: true
@@ -266,12 +267,12 @@ Scope {
               implicitWidth: modeText.implicitWidth + Style.space(14)
               implicitHeight: modeText.implicitHeight + Style.space(6)
               radius: height / 2
-              color: inPlace ? Util.alpha(Color.accent, 0.16) : Util.alpha(Color.menu.text, 0.08)
+              color: inPlace ? Util.alpha(Commons.Color.accent, 0.16) : Util.alpha(Commons.Color.menu.text, 0.08)
               Text {
                 id: modeText
                 anchors.centerIn: parent
                 text: parent.inPlace ? "In place" : "New window"
-                color: parent.inPlace ? Color.accent : root.dim
+                color: parent.inPlace ? Commons.Color.accent : root.dim
                 font.family: Style.font.menuFamily
                 font.pixelSize: Style.font.caption
               }
@@ -298,7 +299,7 @@ Scope {
                 implicitHeight: appColumn.implicitHeight + Style.space(20)
                 bordered: true
                 hasCursor: appMouse.containsMouse && !isCurrent
-                foreground: Color.menu.text
+                foreground: Commons.Color.menu.text
                 opacity: isCurrent ? 0.45 : 1.0
 
                 Column {
@@ -321,7 +322,7 @@ Scope {
                     width: Math.min(implicitWidth, appTile.width - Style.space(12))
                     textFormat: Text.PlainText
                     text: appTile.modelData.name
-                    color: Color.menu.text
+                    color: Commons.Color.menu.text
                     font.family: Style.font.menuFamily
                     font.pixelSize: Style.font.body
                     elide: Text.ElideRight
@@ -349,7 +350,7 @@ Scope {
             id: field
             Layout.fillWidth: true
             placeholderText: "Web address or web app name"
-            foreground: Color.menu.text
+            foreground: Commons.Color.menu.text
             font.family: Style.font.menuFamily
             onAccepted: root.submitAddress()
             Keys.onEscapePressed: keyCatcher.forceActiveFocus()
@@ -360,7 +361,7 @@ Scope {
             Layout.fillWidth: true
             textFormat: Text.PlainText
             text: root.error
-            color: Color.urgent
+            color: Commons.Color.urgent
             font.family: Style.font.menuFamily
             font.pixelSize: Style.font.caption
             wrapMode: Text.WordWrap
@@ -400,14 +401,14 @@ Scope {
     implicitWidth: Math.max(implicitHeight, capText.implicitWidth + Style.space(10))
     implicitHeight: capText.implicitHeight + Style.space(4)
     radius: Math.max(2, Style.cornerRadius / 2)
-    color: Util.alpha(Color.menu.text, 0.06)
+    color: Util.alpha(Commons.Color.menu.text, 0.06)
     border.width: 1
-    border.color: Util.alpha(Color.menu.text, 0.22)
+    border.color: Util.alpha(Commons.Color.menu.text, 0.22)
     Text {
       id: capText
       anchors.centerIn: parent
       text: parent.label
-      color: Color.menu.text
+      color: Commons.Color.menu.text
       font.family: Style.font.menuFamily
       font.pixelSize: Style.font.caption
     }

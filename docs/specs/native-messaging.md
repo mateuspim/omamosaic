@@ -16,7 +16,7 @@ Manifest V3, name "OmaMosaic", with a fixed `key`, so its ID is always
 `alarms`, `scripting`, `storage`, and host permission `<all_urls>`. The
 worker script's file name changes with every extension change
 ([ADR 10](../adr/0010-rename-the-extension-worker-on-every-change.md)); today
-it is `background-11.js`, version 0.6.0.
+it is `background-14.js`, version 0.7.0.
 
 It connects with `chrome.runtime.connectNative("pym.omamosaic")`, retries with
 backoff from 1 s to 60 s, and a one-minute alarm wakes the worker if the
@@ -86,16 +86,23 @@ Every message is a JSON object with a `type`.
 | Type | Fields | Meaning |
 | --- | --- | --- |
 | `host` | `pid`, `browser` | From the host: the browser's PID and executable (`/proc/<ppid>/exe`). |
-| `hello` | `extension`, `script`, `features` | The extension's version, its worker's file name, and what it can do: `mute`, `volume`, `follow`, `navigate`, `reload`, `media`, `favicon`, `stream`, `extensions`, `fullscreen`. |
+| `hello` | `extension`, `script`, `features` | The extension's version, its worker's file name, and what it can do: `mute`, `volume`, `follow`, `navigate`, `reload`, `media`, `favicon`, `stream`, `extensions`, `fullscreen`, `crash`. |
 | `windows` | `windows`, optional `id` | The browser's app and popup windows (never normal ones), pushed when they change (debounced 250 ms) and in answer to `ping` (with its `id`). |
 | `done` | `id`, `error` | How a command that carried an `id` went; `error` is `""` on success. |
 
 A `windows` entry is `{ id, type, focused, tabs }`, and each tab is
-`{ id, url, title, favIconUrl, audible, muted, volume, stream }`. `volume`
+`{ id, url, title, favIconUrl, audible, muted, volume, stream, crashed }`. `volume`
 is 0 to 1 (1 means the site's own level). `stream` is `null` or
 `{ state: "playing" | "idle" | "dropped", reason, detail, since,
 fullscreen }`, reported by the page watcher only when it changes and
-forgotten when the tab loads a new page.
+forgotten when the tab loads a new page. `crashed` (feature `crash`) is
+`true` while the tab's page has crashed ("Aw, Snap!"): every 5 s the
+worker sends each http(s) tab's main frame a script that does nothing,
+and a page that took one since it loaded, or whose tab says `unloaded`
+(as a crashed tab soon does), and then fails twice in a row
+with "Frame with ID 0 was removed" or "Cannot access contents of the
+page" has crashed. Chromium fires no event and changes no tab field for
+a crash; an error page fails with "showing error page" instead.
 
 ### From the service
 

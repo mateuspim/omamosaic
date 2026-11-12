@@ -8,7 +8,7 @@ import vm from "node:vm"
 const source = fs.readFileSync(new URL("../Model.js", import.meta.url), "utf8")
   .replace(/^\.pragma library\s*/m, "")
 const model = {}
-vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, otherTitles, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, privateStateSteps, privateFilesCommand, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
+vm.runInNewContext(source + "\nObject.assign(model, {  parseSaved, serializeSaved, snapshotSession, missingTiles, parseWorkspaces, parseWorkspaceRules, restoreWorkspace, restoreLayout, savedRows, loginSessions, savedText, zoneCount, newCustom, zoneDividers, withDivider, withoutZone, withSplit, ordinal, reconcileVolumes, layoutWorkspaceRows, shownWorkspaceRows, windowCounts, customRows, freeLayoutName, layoutChoices, layoutLabel, nextLayout, parseLayoutName, hyprLayoutName, layoutSlug, normalizeCustom, visualZones, defineLua, withZoneSize, withMain, withName, customSummary, parseLayouts, serializeLayouts, layoutsLoadLua, layoutsLoaded, layoutRuleLua, sessionWorkspace, tileStates, planWorkspaceLayout, planSyncLayouts, planSaveCustom, planDeleteCustom, workspaceChoice, layoutsText, hiddenEntries, showWebapp, nameList, visibleWebapps, hideWebapp, sessionOf, clientFromIpc, parseStore, tileState, buildList, shapeList, parseClients, validAddress, dispatchExpression, listTiles, findTile, planFocus, planRemove, planClose, planContain, planAutoContain, restoreAfterMove, monitorFromIpc, parseMonitors, resolveAddTargets, chooseWorkspace, monitorWorkspace, focusedSession, planMove, moveChoices, desktopId, isChromiumFamily, isAppWindow, parseOpenWindow, tileDispatches, pruneRecords, serializeStore, planReplace, replaceRecord, parseCursorPos, cursorMoveExpression, parseKeySpec, bindConflict, tileRect, listText, webappsText, monitorsText, splitLines, parseBridgeMessage, browserLabel, bridgeWindows, siteOf, matchTiles, tabSiteDrift, otherTitles, planCrashReloads, crashWaiting, keepTabs, tileTab, navigationSettled, extensionState, extensionNotice, extensionSteps, browserClass, browserPids, tileAudio, focusMutes, audioIcon, extensionFromManifest, parseStream, planRefullscreen, fullscreenKeyLua, tileShown, recoverySite, planRecovery, recoveryWaiting, streamStatus, recoveryLog, streamsText, bridgeHas, stepVolume, parseVolume, swapBindLua, unbindLua, webappUrl, webappFromEntry, buildWebapps, shapeWebapps, findWebapp, resolveTarget, parseList, tileLabel, tileMeta, sessionPlace, tileApp, tileName, webappName, webappNameError, siteRoot, planSaveWebapp, tileSubtitle, tileInitial, layoutBoxes, keyHints, normalizeUrl, sessionName, summary, anyUncontained, parseManifest, stateDirs, stateMigrationStep, privateStateSteps, privateFilesCommand, bindOnKey, SWAP_BIND_DESCRIPTION, LEGACY_SWAP_BIND_DESCRIPTIONS });", { model })
 
 // Values built inside the VM belong to another realm, so compare copies.
 const plain = value => JSON.parse(JSON.stringify(value))
@@ -519,7 +519,7 @@ assert.equal(model.browserLabel(""), "the browser")
 assert.deepEqual(plain(model.bridgeWindows([
   { id: 1, type: "app", focused: true, tabs: [{ id: 2, url: "https://twitch.tv/a", title: "a", audible: true, muted: false }, { url: "x" }] },
   { id: "3", tabs: [] }, null
-])), [{ id: 1, type: "app", focused: true, tabs: [{ id: 2, url: "https://twitch.tv/a", title: "a", favIconUrl: "", audible: true, muted: false, volume: 1, stream: null }] }])
+])), [{ id: 1, type: "app", focused: true, tabs: [{ id: 2, url: "https://twitch.tv/a", title: "a", favIconUrl: "", audible: true, muted: false, volume: 1, stream: null, crashed: false }] }])
 assert.equal(model.bridgeWindows([{ id: 1, tabs: [{ id: 2, volume: 0.25 }, { id: 3, volume: 7 }] }])[0].tabs.map(tab => tab.volume).join(), "0.25,1")
 assert.deepEqual(plain(model.bridgeWindows("nope")), [])
 
@@ -552,6 +552,32 @@ const sameTabs = [{ windows: [tab(1, "https://youtube.com/", "YouTube"), tab(2, 
 assert.equal(model.matchTiles(sameSite, sameTabs).matched, 0)
 assert.deepEqual(plain(model.matchTiles(sameSite, sameTabs, { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 } }).tiles),
   { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 } })
+// A crossed earlier pairing is put right once a title tells the tiles
+// apart, while a title two tiles share keeps the earlier tab.
+const crossedTiles = [
+  { address: "0xa", url: "https://example.org/", title: "(17) Stream A - Site A", index: 1 },
+  { address: "0xb", url: "https://example.com", title: "(71) Site B", index: 2 },
+  { address: "0xc", url: "https://example.com", title: "(17) Stream A - Site A", index: 3 }
+]
+const crossedTabs = [{ windows: [tab(1, "https://example.com/stream-a", "(17) Stream A - Site A"), tab(2, "https://example.org/", "(71) Site B"), tab(3, "https://example.com/stream-a", "(17) Stream A - Site A")] }]
+assert.deepEqual(plain(model.matchTiles(crossedTiles, crossedTabs,
+  { "0xa": { bridge: 0, window: 2, tab: 102 }, "0xb": { bridge: 0, window: 1, tab: 101 }, "0xc": { bridge: 0, window: 3, tab: 103 } }).tiles),
+  { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 }, "0xc": { bridge: 0, window: 3, tab: 103 } })
+// A record follows its tab to another site, once the tab shows the
+// tile's own title; not mid-swap, not on the same site, not without one.
+const driftTiles = [
+  { address: "0xa", url: "https://example.org/", title: "(3) Stream A - Site A", index: 1 },
+  { address: "0xb", url: "https://example.com", title: "Loading", index: 2 },
+  { address: "0xc", url: "https://example.com", title: "Page C", index: 3 },
+  { address: "0xd", url: "", title: "Page D", index: 4 }
+]
+const driftTabs = [{ windows: [tab(1, "https://www.example.com/stream-a?x=1", "(3) Stream A - Site A"), tab(2, "https://example.net/", "Site N"),
+  tab(3, "https://example.com/other", "Page C"), tab(4, "https://example.net/", "Page D")] }]
+const driftCheck = { tiles: { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 },
+  "0xc": { bridge: 0, window: 3, tab: 103 }, "0xd": { bridge: 0, window: 4, tab: 104 } } }
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, driftCheck, driftTabs)), [{ address: "0xa", url: "https://www.example.com/" }])
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, driftCheck, driftTabs, ["0xa"])), [])
+assert.deepEqual(plain(model.tabSiteDrift(driftTiles, null, driftTabs)), [])
 // Focus tells look-alikes apart: only the focused tile, and only on its site.
 const focusTabs = [{ windows: [tab(1, "https://kick.com/", "Kick"), Object.assign(tab(2, "https://kick.com/", "Kick"), { focused: true })] }]
 const kicks = [{ address: "0xa", url: "https://kick.com", title: "Kick", index: 1 }, { address: "0xb", url: "https://kick.com", title: "Kick", index: 2 }]
@@ -585,6 +611,15 @@ assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 
 assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 } }, { tiles: { "0xa": { bridge: 0, window: 3, tab: 103 } } }, ["0xa"])),
   { "0xa": { bridge: 0, window: 3, tab: 103 } })
 assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: "x", tab: 1 } }, null, ["0xa"])), {})
+// A tile missing from a list still filling in keeps its pairing while its
+// tab is there; a pairing whose tab another tile now has is dropped.
+const keptBridges = [{ windows: [tab(1, "https://example.com/", "A"), tab(2, "https://example.org/", "B")] }]
+assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 1, tab: 101 }, "0xgone": { bridge: 0, window: 9, tab: 109 } },
+  { tiles: { "0xb": { bridge: 0, window: 2, tab: 102 } } }, ["0xb"], keptBridges)),
+  { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 } })
+assert.deepEqual(plain(model.keepTabs({ "0xa": { bridge: 0, window: 2, tab: 102 } },
+  { tiles: { "0xb": { bridge: 0, window: 2, tab: 102 } } }, ["0xa", "0xb"], keptBridges)),
+  { "0xb": { bridge: 0, window: 2, tab: 102 } })
 
 const navBridges = [{ windows: [tab(1, "https://kick.com/", "Kick")] }]
 assert.equal(model.tileTab({ tiles: { "0xa": { bridge: 0, window: 1, tab: 101 } } }, navBridges, "0xa").title, "Kick")
@@ -647,8 +682,8 @@ const audioBridges = [{ windows: [
 const audioCheck = { total: 3, matched: 2, tiles: { "0xa": { bridge: 0, window: 1, tab: 101 }, "0xb": { bridge: 0, window: 2, tab: 102 }, "0xc": { bridge: 3, window: 9, tab: 9 } }, missing: [] }
 const audio = model.tileAudio(audioCheck, audioBridges)
 assert.deepEqual(plain(audio), {
-  "0xa": { bridge: 0, tab: 101, audible: true, muted: false, volume: 1, url: "", stream: null },
-  "0xb": { bridge: 0, tab: 102, audible: false, muted: true, volume: 0.5, url: "", stream: null }
+  "0xa": { bridge: 0, tab: 101, audible: true, muted: false, volume: 1, url: "", stream: null, crashed: false },
+  "0xb": { bridge: 0, tab: 102, audible: false, muted: true, volume: 0.5, url: "", stream: null, crashed: false }
 })
 assert.deepEqual(plain(model.tileAudio(null, audioBridges)), {})
 assert.deepEqual(plain(model.focusMutes(audio, "0xb")), [{ bridge: 0, tab: 101, muted: true }, { bridge: 0, tab: 102, muted: false }])
@@ -1178,4 +1213,35 @@ assert.equal(model.privateFilesCommand(), null)
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true })
   }
+}
+
+// Crashed pages are reloaded on any site, backing off like stream recovery.
+{
+  const crashedAudio = { "0xa": { bridge: 0, tab: 7, url: "https://example.com/", crashed: true } }
+  let plan = model.planCrashReloads(crashedAudio, {}, ["0xa"], 1000)
+  assert.deepEqual(plain(plan.reload), ["0xa"])
+  assert.equal(plan.events[0].action, "reloaded")
+  assert.equal(plan.events[0].reason, "crashed")
+  assert.equal(model.planCrashReloads(crashedAudio, plan.crashes, ["0xa"], 2000).reload.length, 0)
+  plan = model.planCrashReloads(crashedAudio, plan.crashes, ["0xa"], 1000 + 30000)
+  assert.deepEqual(plain(plan.reload), ["0xa"])
+  plan = model.planCrashReloads(crashedAudio, plan.crashes, ["0xa"], 1000 + 30000 + 120000)
+  assert.deepEqual(plain(plan.reload), ["0xa"])
+  plan = model.planCrashReloads(crashedAudio, plan.crashes, ["0xa"], 1000 + 30000 + 240000)
+  assert.equal(plan.reload.length, 0)
+  assert.equal(plan.events[0].action, "stalled")
+  assert.equal(model.crashWaiting(crashedAudio, plan.crashes), false)
+  assert.equal(model.crashWaiting(crashedAudio, {}), true)
+  // Back after a reload: recovered, and a stall ends.
+  const back = { "0xa": { bridge: 0, tab: 7, url: "https://example.com/", crashed: false } }
+  const fresh = model.planCrashReloads(crashedAudio, {}, ["0xa"], 1000)
+  const recovered = model.planCrashReloads(back, fresh.crashes, ["0xa"], 5000)
+  assert.equal(recovered.events[0].action, "recovered")
+  assert.equal(recovered.crashes["0xa"].waiting, 0)
+  assert.equal(model.planCrashReloads(back, plan.crashes, ["0xa"], 5000).crashes["0xa"].stalled, false)
+  // A new tab starts afresh; healthy tiles leave no state.
+  assert.deepEqual(plain(model.planCrashReloads({ "0xa": Object.assign({}, crashedAudio["0xa"], { tab: 8 }) }, plan.crashes, ["0xa"], 300000).reload), ["0xa"])
+  assert.deepEqual(plain(model.planCrashReloads(back, {}, ["0xa"], 1000).crashes), {})
+  assert.equal(model.streamStatus(crashedAudio["0xa"], null, false, 0).text, "page crashed")
+  assert.equal(model.bridgeWindows([{ id: 1, tabs: [{ id: 2, crashed: true }, { id: 3 }] }])[0].tabs.map(tab => tab.crashed).join(), "true,false")
 }

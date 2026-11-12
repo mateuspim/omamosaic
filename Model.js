@@ -2090,7 +2090,7 @@ function bridgeWindows(list) {
       var volume = Number(tab.volume)
       tabs.push({ id: tab.id, url: String(tab.url || ""), title: String(tab.title || ""), favIconUrl: String(tab.favIconUrl || ""),
         audible: tab.audible === true, muted: tab.muted === true, volume: tab.volume === undefined || !(volume >= 0 && volume <= 1) ? 1 : volume,
-        stream: parseStream(tab.stream) })
+        stream: parseStream(tab.stream), crashed: tab.crashed === true })
     }
     windows.push({ id: window.id, type: String(window.type || ""), focused: window.focused === true, tabs: tabs })
   }
@@ -2115,7 +2115,8 @@ function siteOf(url) {
 }
 
 // Which extension window each tile is: `bridges` are the connected
-// extensions ({ windows }). A tile keeps the tab it had in `previous` (an
+// extensions ({ windows }). A tile whose title no other tile has takes
+// the one tab with that title. Else a tile keeps the tab it had in `previous` (an
 // earlier result's `tiles`, optional) while that tab is still there, since
 // a swap in place or the user browsing changes its title and site. Else it
 // is the one app window whose tab has the tile's title (Hyprland's title
@@ -2152,6 +2153,16 @@ function matchTiles(tiles, bridges, previous, focused, others) {
     taken.push(hits[0])
     found[tile.address] = { bridge: hits[0].bridge, window: hits[0].window, tab: hits[0].tab.id }
   }
+  // A title only this tile has, on exactly one tab, beats an earlier
+  // pairing: a pairing that went wrong once (look-alike tiles after a
+  // browser restart) otherwise stays wrong, and is saved across shell
+  // restarts, so a swap in place navigates the other window (seen
+  // 2026-11-11: two tiles on one workspace were paired with each other's
+  // tabs).
+  tiles.forEach(function(tile) {
+    if (tile.title === "" || tileTitles.indexOf(tile.title) !== tileTitles.lastIndexOf(tile.title)) return
+    claim(tile, function(candidate) { return candidate.tab.title === tile.title })
+  })
   var known = previous || {}
   tiles.forEach(function(tile) {
     var had = known[tile.address]
@@ -2349,15 +2360,30 @@ function reconcileVolumes(volumes, audio, live, follows, recent) {
 }
 
 // The tile-to-tab pairings worth keeping (see matchTiles' `previous`):
-// `saved` ones, updated by the latest `check`, for the tiles at
-// `addresses` only. Saved across shell restarts, since a restart forgets
-// them and the browser's tab ids outlive it.
-function keepTabs(saved, check, addresses) {
-  var merged = Object.assign({}, saved || {}, check && check.tiles ? check.tiles : {})
+// `saved` ones, updated by the latest `check`. Saved across shell
+// restarts, since a restart forgets them and the browser's tab ids
+// outlive it. A pairing is kept for a tile at `addresses`, or for one
+// missing from them whose tab `bridges` still report: just after a shell
+// start the tile list can lack tiles Quickshell has no Hyprland details
+// for yet, and dropping their pairings then left look-alike tiles
+// unmatched (seen 2026-11-11). A saved pairing whose tab the check gave
+// another tile is dropped.
+function keepTabs(saved, check, addresses, bridges) {
+  var fresh = check && check.tiles ? check.tiles : {}
+  var merged = Object.assign({}, saved || {}, fresh)
+  var claimed = Object.keys(fresh).map(function(address) { return fresh[address].bridge + ":" + fresh[address].tab })
+  function tabExists(entry) {
+    var bridge = bridges ? bridges[entry.bridge] : null
+    return !!bridge && (bridge.windows || []).some(function(window) {
+      return window.tabs.some(function(tab) { return tab.id === entry.tab })
+    })
+  }
   var kept = {}
-  addresses.forEach(function(address) {
+  Object.keys(merged).forEach(function(address) {
     var entry = merged[address]
-    if (entry && Number.isInteger(entry.bridge) && Number.isInteger(entry.tab)) kept[address] = entry
+    if (!entry || !Number.isInteger(entry.bridge) || !Number.isInteger(entry.tab)) return
+    if (!fresh[address] && claimed.indexOf(entry.bridge + ":" + entry.tab) !== -1) return
+    if (addresses.indexOf(address) !== -1 || tabExists(entry)) kept[address] = entry
   })
   return kept
 }
@@ -2372,6 +2398,27 @@ function tileTab(check, bridges, address) {
     for (var t = 0; t < tabs.length; t++) if (tabs[t].id === found.tab) return tabs[t]
   }
   return null
+}
+
+// Tiles whose tab is on another site than their record says, as
+// [{ address, url }] with the tab's site root, so the record can follow
+// it: a swap that went to the wrong tab, or browsing to another site,
+// otherwise leaves the panel naming the site the tile left, and offering
+// it as "now". Only when the tab shows the tile's own Hyprland title,
+// which proves the pairing and that the page has settled; never for a
+// tile without a record or one in `skip` (a swap still on its way).
+function tabSiteDrift(tiles, check, bridges, skip) {
+  var drift = []
+  tiles.forEach(function(tile) {
+    if (!tile.url || tile.title === "" || (skip || []).indexOf(tile.address) !== -1) return
+    var tab = tileTab(check, bridges, tile.address)
+    if (!tab || tab.title !== tile.title) return
+    var site = siteOf(tab.url)
+    var root = siteRoot(tab.url)
+    if (site === "" || root === "" || site === siteOf(tile.url)) return
+    drift.push({ address: tile.address, url: root })
+  })
+  return drift
 }
 
 // Whether a tab sent to `url` has arrived: it is on that site and shows a
@@ -2394,7 +2441,7 @@ function tileAudio(check, bridges) {
     bridge.windows.forEach(function(window) {
       window.tabs.forEach(function(tab) {
         if (tab.id === found.tab) audio[address] = { bridge: found.bridge, tab: tab.id, audible: tab.audible, muted: tab.muted, volume: tab.volume,
-          url: tab.url, stream: tab.stream || null }
+          url: tab.url, stream: tab.stream || null, crashed: tab.crashed === true }
       })
     })
   })
@@ -2427,7 +2474,7 @@ function audioIcon(entry) {
 // that went offline can't reload forever: at most RECOVERY_TRIES within
 // RECOVERY_WINDOW_MS, waiting RECOVERY_WAITS_MS[n] after the nth, then the
 // tile is "stalled" until its stream plays again or the user reloads it.
-var RECOVERY_SITES = "twitch.tv, kick.com"
+var RECOVERY_SITES = "twitch.tv, kick.com, youtube.com"
 var RECOVERY_TRIES = 3
 var RECOVERY_WINDOW_MS = 600000
 var RECOVERY_WAITS_MS = [0, 30000, 120000]
@@ -2501,6 +2548,58 @@ function planRecovery(audio, recovery, sitesText, live, now) {
     next[address] = record
   })
   return { recovery: next, reload: reload, events: events }
+}
+
+// What to do about crashed pages ("Aw, Snap!", which the extension's
+// "crash" feature reports): reload them, on every site, backing off like
+// planRecovery so a page that keeps crashing can't reload forever.
+// `crashes` is the last result's state by address ({ tab, tries: [ms],
+// waiting, stalled }). Returns { crashes, reload: [address], events },
+// with events as planRecovery's, reason "crashed".
+function planCrashReloads(audio, crashes, live, now) {
+  var next = {}
+  var reload = []
+  var events = []
+  live.forEach(function(address) {
+    var entry = audio[address]
+    var old = crashes[address]
+    if (!entry) {
+      if (old) next[address] = old
+      return
+    }
+    var record = old && old.tab === entry.tab
+      ? { tab: old.tab, tries: old.tries.filter(function(at) { return now - at < RECOVERY_WINDOW_MS }), waiting: old.waiting, stalled: old.stalled }
+      : { tab: entry.tab, tries: [], waiting: 0, stalled: false }
+    var event = function(action) {
+      events.push({ address: address, action: action, reason: "crashed", detail: "", url: entry.url || "" })
+    }
+    if (!entry.crashed) {
+      if (record.waiting > 0) event("recovered")
+      record.waiting = 0
+      record.stalled = false
+    } else if (!record.stalled) {
+      var last = record.tries.length > 0 ? record.tries[record.tries.length - 1] : -Infinity
+      if (record.tries.length >= RECOVERY_TRIES) {
+        record.stalled = true
+        record.waiting = 0
+        event("stalled")
+      } else if (now - last >= RECOVERY_WAITS_MS[record.tries.length]) {
+        record.tries.push(now)
+        record.waiting = now
+        reload.push(address)
+        event("reloaded")
+      }
+    }
+    if (record.tries.length > 0 || record.stalled) next[address] = record
+  })
+  return { crashes: next, reload: reload, events: events }
+}
+
+// Whether a crashed tile waits for its next reload.
+function crashWaiting(audio, crashes) {
+  return Object.keys(audio).some(function(address) {
+    return audio[address].crashed && !(crashes[address] && crashes[address].stalled)
+  })
 }
 
 // A recovery reload whose page is still idle RECOVERY_RETURN_MS later,
@@ -2592,6 +2691,8 @@ function fullscreenKeyLua(address) {
 // it. A reload shows for a minute at most, since a channel that went
 // offline never plays again.
 function streamStatus(entry, record, enabled, now) {
+  // On every site: a crashed page is reloaded wherever it is.
+  if (entry && entry.crashed) return { text: "page crashed", warn: true }
   if (!enabled) return { text: "", warn: false }
   var stream = entry ? entry.stream : null
   if (record && record.stalled) return { text: "stream stalled; P reloads it", warn: true }
@@ -2622,7 +2723,7 @@ function streamsText(list, audio, recovery, log, sitesText) {
     var entry = audio[tile.address]
     var stream = entry ? entry.stream : null
     var record = recovery[tile.address]
-    var state = !entry ? "not found by the extension" : !stream ? "no video report" : stream.state
+    var state = !entry ? "not found by the extension" : entry.crashed ? "page crashed" : !stream ? "no video report" : stream.state
       + (stream.reason ? " (" + stream.reason + (stream.detail ? ": " + stream.detail : "") + ")" : "")
     var extra = record && record.stalled ? ", stalled" : record && record.recovered > 0 ? ", recovered " + record.recovered + "×" : ""
     lines.push(tile.index + "  " + tileLabel(tile) + "  " + state + extra

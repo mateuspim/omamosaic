@@ -152,7 +152,15 @@ logins and memory; the user chose an extension instead.
   at most.
   The window keeps the Hyprland class from its first URL (Chromium names
   app windows after it), and nothing in OmaMosaic reads that class.
-- **Finding tiles.** A tile keeps the tab it was matched to while that
+- **Finding tiles.** A tile whose Hyprland title no other tile has is
+  the one tab showing that title, whatever it was paired with before:
+  a wrong pairing otherwise never healed, and a swap in place on one
+  tile navigated the tile beside it (seen 2026-11-11).
+  Once paired, a tab on another site than the tile's record, showing the
+  tile's own title, moves the record to that site's root
+  (`Model.tabSiteDrift`), so a stale record can't keep the panel naming
+  the site the tile left; swaps in place still loading are left alone.
+  Otherwise a tile keeps the tab it was matched to while that
   tab exists (a swap in place can leave two tiles on one site with one
   title); else it is the extension window whose one tab has the tile's
   Hyprland title (`Model.matchTiles`), else the one left on its site.
@@ -162,7 +170,9 @@ logins and memory; the user chose an extension instead.
   app window on the same site stuck, and a swap in place navigated that
   window instead of the tile (seen 2026-10-11).
   Pairings are saved beside the socket (`pym-omamosaic-tabs.json` in
-  `$XDG_RUNTIME_DIR`), since tab ids outlive a shell restart. Tiles alike
+  `$XDG_RUNTIME_DIR`), since tab ids outlive a shell restart. A pairing
+  outlives its tile's absence from the list while its tab exists, since
+  the list fills in over the first moments after a shell start. Tiles alike
   in title and site, never paired before, are told apart by focus: when one
   is focused, the service asks for a fresh report (`ping`) and pairs it
   with the browser window that reports focus. Verify reports how many tiles were found.
@@ -212,9 +222,20 @@ fails, and only a page reload brings them back (the user's report,
   re-reported on every check, so `since` never settled), and the worker carries it as `stream` on the
   tab in its `windows` reports. A new page starts without one (the worker
   forgets it on `loading`).
+- **0.7.0 (`background-14.js`) widened what counts**, for YouTube joining
+  the recovery sites (the user's call, 2026-11-11). Only a video that has
+  filled a quarter of the tile is watched (`state.big`), so hover previews
+  on a home page are none; a playing one with no size still is (a hidden
+  player). An `ended` video with a finite `duration` is `idle (ended)`,
+  not `stopped`: only a live stream that ends is a drop. A pause by hand
+  whose video has `readyState` below 2 (no picture) counts as `stopped`:
+  a Twitch tile sat `idle (paused: readyState 1, networkState 2)` after a
+  click and was never reloaded. Twitch's error overlay counts with no
+  video on the page too (its "Error #2000" screen has none). Checked in a
+  throwaway headless Brave Origin 157 with generated clips.
 - **Deciding is in the service.** `Model.planRecovery` (unit-tested)
   reloads a dropped tile on a site in the **Stream recovery sites**
-  setting (`twitch.tv, kick.com`; subdomains count) with the existing
+  setting (`twitch.tv, kick.com, youtube.com`; subdomains count) with the existing
   `reload` command: at once, then after 30 s and 2 min, at most three
   tries in ten minutes. After that the tile is `stalled` until its
   stream plays again or the user reloads it by hand (P, `omamosaic reload`,
@@ -229,6 +250,20 @@ fails, and only a page reload brings them back (the user's report,
   each event to the journal ("OmaMosaic: stream reloaded: …"), and keeps the
   last 50 for `omamosaic streams` (IPC `streams`). The panel's switch is the
   widget setting `recoverStreams` (on by default).
+- **Crashed pages are reloaded too (extension 0.7.0, `background-14.js`,
+  feature `crash`).** A crashed page ("Aw, Snap!") keeps its title and
+  status, fires no event, and leaves its last stream report standing, so
+  a crashed stream still read as playing and nothing reloaded it (seen
+  2026-11-11). The worker tries a no-op script on each tile every 5 s
+  and reports `crashed` (see `docs/specs/native-messaging.md`);
+  `Model.planCrashReloads` reloads it on every site with the same backoff
+  as streams, while **Recover streams** is on. Checked in a throwaway
+  headless Brave Origin 157 by SIGKILLing its page renderers: flagged
+  within 10 s, cleared by the reload; an error page never flagged. A page
+  already crashed when the worker starts never took a script, so a tab
+  whose status is `unloaded` counts too (a live page is `complete`).
+  DevTools' `Page.crash` only takes effect when the page next runs, so it
+  is no way to test this.
 - **What a reload keeps.** The window, its slot, containment, the tab's
   mute, and its volume (set again when the page finishes loading). A
   theater mode is lost. In-tile fullscreen comes back (0.5.4, feature
